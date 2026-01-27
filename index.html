@@ -240,12 +240,23 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
+                    <!-- Seletor de Modo -->
                     <div class="space-y-1">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">CPC Estimado (R$)</label>
-                        <input type="number" id="cpc-est" value="0.11" step="0.01" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Base de Cálculo</label>
+                        <select id="ads-mode" onchange="toggleAdsMode()" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold text-gray-700 focus:ring-2 focus:ring-orange-500 outline-none">
+                            <option value="cpc">Tenho o CPC (R$)</option>
+                            <option value="conv">Tenho a Conversão (%)</option>
+                        </select>
                     </div>
                     
+                    <!-- Campo Dinâmico (CPC ou Conversão) -->
                     <div class="space-y-1">
+                        <label id="lbl-ads-input" class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">CPC Estimado (R$)</label>
+                        <input type="number" id="ads-input" value="0.11" step="0.01" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                    
+                    <!-- Perfil -->
+                    <div class="col-span-2 space-y-1">
                         <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Perfil (Min 50% Lucro)</label>
                         <select id="perfil-ads" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
                             <option value="0.5" selected>⚖️ Equilibrado (50%)</option>
@@ -281,10 +292,11 @@
                         <span id="res-cpa" class="text-xl font-black text-gray-800">R$ 0,00</span>
                         <span id="res-cpa-restante" class="block text-[10px] font-bold text-gray-400 mt-1">Sobra: R$ 0,00</span>
                     </div>
+                    <!-- CARD DINÂMICO (CPC MÁX ou CONVERSÃO MÍN) -->
                     <div class="bg-orange-50 p-3 rounded-xl border border-orange-200 shadow-sm text-center">
-                        <span class="block text-[10px] uppercase font-bold text-orange-600 mb-1">Taxa de Conversão Mínima</span>
-                        <span id="res-conv" class="text-2xl font-black text-orange-600">0.00%</span>
-                        <span id="res-conv-cpa" class="block text-[10px] font-bold text-orange-500 mt-1">Custo: R$ 0,00</span>
+                        <span id="lbl-res-secondary" class="block text-[10px] uppercase font-bold text-orange-600 mb-1">Taxa de Conversão Mínima</span>
+                        <span id="res-secondary-val" class="text-2xl font-black text-orange-600">0.00%</span>
+                        <span id="res-secondary-sub" class="block text-[10px] font-bold text-orange-500 mt-1">Custo: R$ 0,00</span>
                     </div>
                 </div>
 
@@ -582,7 +594,9 @@
             descRelampago: document.getElementById('desc-relampago').value,
             margem: document.getElementById('margem-slider').value,
             precoVenda: document.getElementById('preco-venda').value,
-            cpcEst: document.getElementById('cpc-est').value,
+            // Salva ambos, mas um será usado dependendo do modo
+            adsMode: document.getElementById('ads-mode').value,
+            adsInput: document.getElementById('ads-input').value,
             perfilAds: document.getElementById('perfil-ads').value,
             updatedAt: new Date().toISOString()
         };
@@ -627,31 +641,47 @@
     window.carregarProduto = (id) => {
         if (!id || !productsCache[id]) return;
         
-        // Se estiver na dashboard, volta pra calculadora
         window.switchTab('calc');
 
         const data = productsCache[id];
         document.getElementById('prod-id').value = id;
         document.getElementById('prod-name').value = data.name;
         
-        // Update UI Mode
+        // UI Updates
         document.getElementById('badge-mode').innerText = `ID: ${id.slice(0,4)}...`;
         document.getElementById('badge-mode').className = "bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-bold text-[9px]";
         document.getElementById('btn-delete').classList.remove('hidden');
         document.getElementById('btn-save-text').innerText = "Atualizar";
         
+        // Retrocompatibilidade para campos antigos (cpcEst)
+        let loadedAdsInput = data.adsInput;
+        if(loadedAdsInput === undefined || loadedAdsInput === null) {
+             loadedAdsInput = data.cpcEst || 0.11;
+        }
+
         const fields = {
-            'custo': data.custo, 'taxa-fixa': data.taxaFixa, 'comissao': data.comissao,
-            'imposto': data.imposto, 'desc-cupom': data.descCupom, 'desc-relampago': data.descRelampago,
-            'margem-slider': data.margem, 'preco-venda': data.precoVenda, 
-            'cpc-est': data.cpcEst || 0.11, // Carrega CPC estimado ou default
+            'custo': data.custo, 
+            'taxa-fixa': data.taxaFixa, 
+            'comissao': data.comissao,
+            'imposto': data.imposto, 
+            'desc-cupom': data.descCupom, 
+            'desc-relampago': data.descRelampago,
+            'margem-slider': data.margem, 
+            'preco-venda': data.precoVenda, 
+            'ads-mode': data.adsMode || 'cpc',
+            'ads-input': loadedAdsInput,
             'perfil-ads': data.perfilAds
         };
 
         for (const [key, val] of Object.entries(fields)) {
-            if(document.getElementById(key)) document.getElementById(key).value = val || 0;
+            const el = document.getElementById(key);
+            if(el) el.value = val;
         }
-        window.atualizarPrecificacao('slider'); 
+        
+        window.toggleAdsMode();
+        
+        // CORREÇÃO CRÍTICA: Use 'manual' para preservar o preço carregado
+        window.atualizarPrecificacao('manual'); 
         window.calcularGeral();
     };
 
@@ -768,7 +798,7 @@
 
 <script>
     // Lógica de Negócio (Global)
-    const ids = ['custo', 'taxa-fixa', 'comissao', 'imposto', 'desc-cupom', 'desc-relampago', 'preco-venda', 'cpc-est', 'perfil-ads'];
+    const ids = ['custo', 'taxa-fixa', 'comissao', 'imposto', 'desc-cupom', 'desc-relampago', 'preco-venda', 'ads-input', 'perfil-ads'];
     const els = {};
     ids.forEach(id => els[id] = document.getElementById(id));
     const margemSlider = document.getElementById('margem-slider');
@@ -783,6 +813,20 @@
         const descRelampago = getVal('desc-relampago') / 100;
         const aposCupom = precoBase * (1 - descCupom);
         return aposCupom * (1 - descRelampago);
+    }
+
+    window.toggleAdsMode = function() {
+        const mode = document.getElementById('ads-mode').value;
+        const label = document.getElementById('lbl-ads-input');
+        const input = document.getElementById('ads-input');
+        
+        if(mode === 'cpc') {
+            label.innerText = "CPC Estimado (R$)";
+            if(input.value > 10) input.value = 0.11; // Reset se parece porcentagem
+        } else {
+            label.innerText = "Conversão Estimada (%)";
+            if(input.value < 1) input.value = 1.5; // Sugestão se for muito baixo
+        }
     }
 
     window.atualizarPrecificacao = function(origem) {
@@ -835,7 +879,8 @@
         const fixo = getVal('taxa-fixa');
         const precoBase = getVal('preco-venda');
         const taxasVariaveis = (getVal('comissao') + getVal('imposto')) / 100;
-        const cpcEst = getVal('cpc-est');
+        const adsMode = document.getElementById('ads-mode').value;
+        const adsInput = getVal('ads-input');
         const perfilAds = getVal('perfil-ads');
 
         const precoFinal = calcularPrecoFinal(precoBase);
@@ -845,14 +890,39 @@
         // CÁLCULO DE ADS
         const cpaAlvo = Math.max(lucroUnit * 0.5, lucroUnit * perfilAds);
         
-        // Engenharia Reversa: Qual conversão eu preciso para pagar esse CPC com esse CPA?
-        // CPA = CPC / Conv -> Conv = CPC / CPA
-        const convMin = cpaAlvo > 0 ? (cpcEst / cpaAlvo) * 100 : 0;
+        let displayMainVal = "";
+        let displayMainLabel = "";
+        let displayMainSub = "";
+        
+        // Lógica BIFURCADA
+        if(adsMode === 'cpc') {
+            // Tenho CPC -> Achar Conversão Mínima
+            const cpc = adsInput;
+            const convMin = cpaAlvo > 0 ? (cpc / cpaAlvo) * 100 : 0;
+            
+            displayMainLabel = "Taxa de Conversão Mínima";
+            displayMainVal = convMin.toFixed(2) + "%";
+            displayMainSub = "Para manter CPC R$ " + cpc.toFixed(2);
+            
+            // Veredito baseado na dificuldade da conversão
+            checkVereditoConv(lucroUnit, convMin);
+            
+        } else {
+            // Tenho Conversão -> Achar CPC Teto
+            const conv = adsInput;
+            const cpcMax = cpaAlvo * (conv / 100);
+            
+            displayMainLabel = "CPC Máximo Permitido";
+            displayMainVal = "R$ " + cpcMax.toFixed(2);
+            displayMainSub = `Com conversão de ${conv}%`;
+            
+            // Veredito baseado na viabilidade do CPC
+            checkVereditoCPC(lucroUnit, cpcMax);
+        }
 
         // CÁLCULO DE ROAS
         const roasBreakeven = lucroUnit > 0 ? (precoFinal / lucroUnit) : 0;
         const roasIdeal = cpaAlvo > 0 ? (precoFinal / cpaAlvo) : 0;
-        
         const lucroPosAds = lucroUnit - cpaAlvo;
 
         document.getElementById('res-cpa').innerText = "R$ " + cpaAlvo.toFixed(2);
@@ -861,43 +931,67 @@
         elSobra.innerText = "Sobra: R$ " + lucroPosAds.toFixed(2);
         elSobra.className = lucroPosAds >= 0 ? "block text-[10px] font-bold text-green-600 mt-1" : "block text-[10px] font-bold text-red-500 mt-1";
 
-        document.getElementById('res-conv').innerText = convMin.toFixed(2) + "%";
-        document.getElementById('res-conv-cpa').innerText = "Custo: R$ " + cpaAlvo.toFixed(2);
+        // Atualiza Card Dinâmico
+        document.getElementById('lbl-res-secondary').innerText = displayMainLabel;
+        document.getElementById('res-secondary-val').innerText = displayMainVal;
+        document.getElementById('res-secondary-sub').innerText = displayMainSub;
+
         document.getElementById('res-roas-breakeven').innerText = roasBreakeven.toFixed(2);
         document.getElementById('res-roas-ideal').innerText = roasIdeal.toFixed(2);
-
-        const vContainer = document.getElementById('veredito-container');
-        const vIcon = document.getElementById('veredito-icon');
-        const vTitulo = document.getElementById('veredito-titulo');
-        const vTexto = document.getElementById('veredito-texto');
-        
-        // Veredito Baseado na Dificuldade da Conversão
-        if (lucroUnit <= 0) {
-             vContainer.className = "p-4 rounded-xl border-l-4 shadow-sm flex items-start gap-3 bg-red-50 border-red-500";
-             vIcon.innerHTML = "<i class='fas fa-skull text-red-500'></i>";
-             vTitulo.innerText = "PREJUÍZO";
-             vTexto.innerText = "Margem negativa. Revise preços ou custos.";
-        } else if (convMin > 3.0) {
-             vContainer.className = "p-4 rounded-xl border-l-4 shadow-sm flex items-start gap-3 bg-red-50 border-red-500";
-             vIcon.innerHTML = "<i class='fas fa-exclamation-triangle text-red-500'></i>";
-             vTitulo.innerText = "RISCO ALTO";
-             vTexto.innerText = `Você precisa de ${convMin.toFixed(1)}% de conversão. Isso é acima da média da Shopee (1.5% - 2%).`;
-        } else if (convMin < 1.0) {
-             vContainer.className = "p-4 rounded-xl border-l-4 shadow-sm flex items-start gap-3 bg-green-50 border-green-500";
-             vIcon.innerHTML = "<i class='fas fa-star text-green-500'></i>";
-             vTitulo.innerText = "MUITO VIÁVEL";
-             vTexto.innerText = `Fácil! Você só precisa de ${convMin.toFixed(1)}% de conversão para ter lucro.`;
-        } else {
-             vContainer.className = "p-4 rounded-xl border-l-4 shadow-sm flex items-start gap-3 bg-blue-50 border-blue-500";
-             vIcon.innerHTML = "<i class='fas fa-check-circle text-blue-500'></i>";
-             vTitulo.innerText = "VIÁVEL (PADRÃO)";
-             vTexto.innerText = `A meta de ${convMin.toFixed(1)}% é atingível para a maioria dos bons produtos.`;
-        }
 
         renderizarProvaReal(precoBase, custo, fixo);
         document.getElementById('results-area').classList.remove('hidden');
         document.getElementById('results-area').scrollIntoView({ behavior: 'smooth' });
     };
+    
+    function checkVereditoConv(lucroUnit, convMin) {
+        const vContainer = document.getElementById('veredito-container');
+        const vIcon = document.getElementById('veredito-icon');
+        const vTitulo = document.getElementById('veredito-titulo');
+        const vTexto = document.getElementById('veredito-texto');
+        
+        if (lucroUnit <= 0) {
+             setVeredito(vContainer, vIcon, vTitulo, vTexto, 'red', 'PREJUÍZO', 'Margem negativa. Revise preços ou custos.');
+        } else if (convMin > 3.0) {
+             setVeredito(vContainer, vIcon, vTitulo, vTexto, 'red', 'DIFÍCIL', `Precisa converter ${convMin.toFixed(1)}%. Acima da média.`);
+        } else if (convMin < 1.0) {
+             setVeredito(vContainer, vIcon, vTitulo, vTexto, 'green', 'MUITO VIÁVEL', `Meta fácil de ${convMin.toFixed(1)}% conversão.`);
+        } else {
+             setVeredito(vContainer, vIcon, vTitulo, vTexto, 'blue', 'VIÁVEL (PADRÃO)', `Meta de ${convMin.toFixed(1)}% é atingível.`);
+        }
+    }
+    
+    function checkVereditoCPC(lucroUnit, cpcMax) {
+        const vContainer = document.getElementById('veredito-container');
+        const vIcon = document.getElementById('veredito-icon');
+        const vTitulo = document.getElementById('veredito-titulo');
+        const vTexto = document.getElementById('veredito-texto');
+        
+        if (lucroUnit <= 0) {
+             setVeredito(vContainer, vIcon, vTitulo, vTexto, 'red', 'PREJUÍZO', 'Margem negativa.');
+        } else if (cpcMax < 0.11) {
+             setVeredito(vContainer, vIcon, vTitulo, vTexto, 'red', 'INVIÁVEL', `CPC Teto R$ ${cpcMax.toFixed(2)} é menor que o mínimo.`);
+        } else if (cpcMax > 0.50) {
+             setVeredito(vContainer, vIcon, vTitulo, vTexto, 'green', 'EXCELENTE', `Você pode pagar até R$ ${cpcMax.toFixed(2)} por clique.`);
+        } else {
+             setVeredito(vContainer, vIcon, vTitulo, vTexto, 'blue', 'VIÁVEL', `Lance teto de R$ ${cpcMax.toFixed(2)} está na média.`);
+        }
+    }
+    
+    function setVeredito(cont, icon, tit, txt, color, title, desc) {
+        const colors = {
+            red: ['border-red-500', 'bg-red-50', 'text-red-500'],
+            green: ['border-green-500', 'bg-green-50', 'text-green-500'],
+            blue: ['border-blue-500', 'bg-blue-50', 'text-blue-500']
+        };
+        const c = colors[color];
+        cont.className = `p-4 rounded-xl border-l-4 shadow-sm flex items-start gap-3 ${c[1]} ${c[0]}`;
+        icon.className = `text-2xl mt-1 ${c[2]}`;
+        icon.innerHTML = color === 'red' ? '<i class="fas fa-exclamation-triangle"></i>' : '<i class="fas fa-check-circle"></i>';
+        tit.innerText = title;
+        tit.className = `font-bold text-sm uppercase ${c[2]}`;
+        txt.innerText = desc;
+    }
 
     function renderizarProvaReal(precoBase, custo, fixo) {
         const descCupom = getVal('desc-cupom');
