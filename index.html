@@ -14,36 +14,99 @@
         input[type=range] { accent-color: #ee4d2d; }
         input:focus { ring: 2px; ring-color: #ee4d2d; border-color: #ee4d2d; }
         
-        /* Loading Spinner */
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid #ee4d2d; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .hidden { display: none !important; }
+        .shake { animation: shake 0.5s; }
+        @keyframes shake { 0% { transform: translate(1px, 1px); } 10% { transform: translate(-1px, -2px); } 20% { transform: translate(-3px, 0px); } 30% { transform: translate(3px, 2px); } 40% { transform: translate(1px, -1px); } 50% { transform: translate(-1px, 2px); } 60% { transform: translate(-3px, 1px); } 70% { transform: translate(3px, 1px); } 80% { transform: translate(-1px, -1px); } 90% { transform: translate(1px, 2px); } 100% { transform: translate(1px, -2px); } }
     </style>
 </head>
-<body class="text-gray-800 antialiased min-h-screen flex flex-col items-center py-4 md:py-8 px-4">
+<body class="text-gray-800 antialiased min-h-screen flex flex-col items-center justify-center py-4 md:py-8 px-4">
 
-    <div class="w-full max-w-2xl bg-white rounded-3xl overflow-hidden card-shadow">
+    <!-- TELA DE LOGIN -->
+    <div id="login-screen" class="w-full max-w-sm bg-white rounded-3xl overflow-hidden card-shadow p-8 transition-all">
+        <div class="text-center mb-8">
+            <div class="inline-block p-4 rounded-full bg-orange-50 mb-4">
+                <i class="fas fa-rocket text-4xl text-[#ee4d2d]"></i>
+            </div>
+            <h1 class="text-2xl font-extrabold text-gray-800">Velt.AI Cloud</h1>
+            <p class="text-sm text-gray-400 mt-1">Precificação Inteligente & Ads</p>
+        </div>
+
+        <div class="space-y-4">
+            <!-- Box de Ajuda Firebase (Oculto por padrão) -->
+            <div id="firebase-help" class="hidden bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-left mb-4">
+                <div class="flex items-start gap-2">
+                    <i class="fas fa-exclamation-triangle text-yellow-600 mt-1"></i>
+                    <div>
+                        <h4 class="text-xs font-bold text-yellow-800 uppercase">Configuração Necessária</h4>
+                        <p class="text-[10px] text-yellow-700 mt-1 leading-relaxed">
+                            O Firebase recusou a conexão. Isso é normal em projetos novos.
+                            <br><br>
+                            1. Vá em <b>Authentication > Sign-in method</b>.<br>
+                            2. Ative <b>Email/Password</b> e <b>Anonymous</b>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">E-mail</label>
+                <input type="email" id="login-email" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold outline-none focus:border-[#ee4d2d] transition-all" placeholder="seu@email.com">
+            </div>
+            <div>
+                <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Senha</label>
+                <input type="password" id="login-password" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold outline-none focus:border-[#ee4d2d] transition-all" placeholder="********">
+            </div>
+            
+            <div id="login-error" class="bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-xs text-center hidden"></div>
+
+            <button onclick="fazerLogin()" id="btn-login" class="w-full py-3.5 shopee-gradient text-white font-bold rounded-xl shadow-lg hover:opacity-90 transition-all">
+                Entrar
+            </button>
+            
+            <button onclick="fazerLoginAnonimo()" id="btn-guest" class="w-full py-2 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-all text-xs uppercase">
+                Entrar como Convidado
+            </button>
+            
+            <div class="relative flex py-2 items-center">
+                <div class="flex-grow border-t border-gray-200"></div>
+                <span class="flex-shrink mx-4 text-gray-400 text-xs">ou</span>
+                <div class="flex-grow border-t border-gray-200"></div>
+            </div>
+
+            <button onclick="fazerCadastro()" id="btn-register" class="w-full py-3.5 bg-white border-2 border-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all">
+                Criar Conta Grátis
+            </button>
+        </div>
+    </div>
+
+    <!-- APP PRINCIPAL (Inicialmente Oculto) -->
+    <div id="app-content" class="hidden w-full max-w-2xl bg-white rounded-3xl overflow-hidden card-shadow">
         
         <!-- Header -->
         <div class="shopee-gradient p-6 text-white text-center relative">
-            <div class="absolute top-5 right-5 opacity-40"><i class="fas fa-cloud text-3xl"></i></div>
+            <div class="absolute top-5 right-5 opacity-40 cursor-pointer hover:opacity-100 transition-opacity" onclick="fazerLogout()" title="Sair da Conta"><i class="fas fa-sign-out-alt text-2xl"></i></div>
             <h1 class="text-2xl font-extrabold tracking-tight">Velt.AI <span class="font-light opacity-90">| Cloud</span></h1>
             <p class="text-xs font-medium uppercase tracking-widest mt-1 opacity-90">Precificação, Ads & Firebase</p>
         </div>
 
         <div class="p-6 md:p-8 space-y-8">
 
-            <!-- 0. GESTÃO DE PRODUTOS (Firebase) -->
+            <!-- 0. GESTÃO DE PRODUTOS -->
             <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 md:p-5 relative">
                 <div class="absolute -top-3 left-4 bg-gray-800 text-white text-[10px] font-bold px-2 py-0.5 rounded">GESTÃO DE PRODUTOS</div>
                 
-                <!-- Status Bar -->
-                <div id="auth-status" class="text-[10px] text-right text-gray-400 mb-2">Conectando...</div>
+                <div class="flex justify-between items-center mb-2">
+                    <div id="db-mode" class="text-[9px] font-bold uppercase text-gray-400">Projeto Pessoal</div>
+                    <div id="auth-status" class="text-[10px] text-right text-gray-400">Conectado</div>
+                </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div class="md:col-span-2">
                         <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Nome do Produto</label>
                         <input type="text" id="prod-name" placeholder="Ex: Tenis_Corrida" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold outline-none focus:border-orange-500 uppercase transition-all">
-                        <input type="hidden" id="prod-id"> <!-- ID do Firestore -->
+                        <input type="hidden" id="prod-id">
                     </div>
                     <div>
                         <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Ação</label>
@@ -53,7 +116,6 @@
                     </div>
                 </div>
 
-                <!-- Lista de Produtos Salvos -->
                 <div class="space-y-2">
                     <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Carregar Salvos</label>
                     <select id="saved-products" onchange="carregarProduto(this.value)" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm outline-none cursor-pointer">
@@ -61,7 +123,6 @@
                     </select>
                 </div>
 
-                <!-- Backup Actions -->
                 <div class="flex justify-end gap-3 mt-4 pt-3 border-t border-gray-200">
                     <button onclick="exportarBackup()" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 uppercase">
                         <i class="fas fa-download"></i> Exportar Backup
@@ -102,7 +163,6 @@
                     </div>
                 </div>
 
-                <!-- Nova Seção: Descontos em Cascata -->
                 <div class="bg-red-50 p-4 rounded-xl border border-red-100">
                     <div class="flex items-center gap-2 mb-2">
                         <i class="fas fa-level-down-alt text-red-500"></i>
@@ -120,17 +180,13 @@
                     </div>
                 </div>
 
-                <!-- Calculadora -->
                 <div class="bg-blue-50 p-5 rounded-xl border border-blue-100 relative mt-6">
                     <div class="absolute -top-3 left-4 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">Definir Margem no Preço Final</div>
-                    
                     <div class="flex justify-between items-center mb-4 mt-2">
                         <span class="text-xs font-bold text-blue-800">Margem Líquida Alvo</span>
                         <span id="label-margem" class="text-lg font-black text-blue-600">15%</span>
                     </div>
-                    
                     <input type="range" id="margem-slider" min="5" max="50" value="15" class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                    
                     <div class="grid grid-cols-2 gap-4 mt-5 pt-4 border-t border-blue-200">
                         <div>
                             <span class="block text-[9px] font-bold text-blue-400 uppercase mb-1">Preço Base (Sem Descontos)</span>
@@ -158,8 +214,8 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-1">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Conversão (%)</label>
-                        <input type="number" id="conv" value="1.5" step="0.1" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">CPC Estimado (R$)</label>
+                        <input type="number" id="cpc-est" value="0.11" step="0.01" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
                     </div>
                     
                     <div class="space-y-1">
@@ -196,10 +252,12 @@
                     <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm text-center">
                         <span class="block text-[10px] uppercase font-bold text-gray-400 mb-1">CPA Teto</span>
                         <span id="res-cpa" class="text-xl font-black text-gray-800">R$ 0,00</span>
+                        <span id="res-cpa-restante" class="block text-[10px] font-bold text-gray-400 mt-1">Sobra: R$ 0,00</span>
                     </div>
                     <div class="bg-orange-50 p-3 rounded-xl border border-orange-200 shadow-sm text-center">
-                        <span class="block text-[10px] uppercase font-bold text-orange-600 mb-1">CPC Máximo</span>
-                        <span id="res-cpc" class="text-2xl font-black text-orange-600">R$ 0,00</span>
+                        <span class="block text-[10px] uppercase font-bold text-orange-600 mb-1">Taxa de Conversão Mínima</span>
+                        <span id="res-conv" class="text-2xl font-black text-orange-600">0.00%</span>
+                        <span id="res-conv-cpa" class="block text-[10px] font-bold text-orange-500 mt-1">Custo: R$ 0,00</span>
                     </div>
                 </div>
 
@@ -233,50 +291,148 @@
 <!-- FIREBASE & LOGIC -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // 1. CONFIG
-    const firebaseConfig = JSON.parse(__firebase_config);
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    // 1. CONFIGURAÇÃO FIREBASE (Projeto do Usuário)
+    const firebaseConfig = {
+        apiKey: "AIzaSyA1oGBZhcHQDcDxUqCc_UrRDA4gt_yf5Os",
+        authDomain: "calculadora-shopee-v2.firebaseapp.com",
+        projectId: "calculadora-shopee-v2",
+        storageBucket: "calculadora-shopee-v2.firebasestorage.app",
+        messagingSenderId: "68009609811",
+        appId: "1:68009609811:web:80bb87c668ffd54b0b54a6"
+    };
     
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
     let currentUser = null;
-    let productsCache = {}; // Cache local para exportação
+    let productsCache = {};
 
-    // 2. AUTH
+    // 2. AUTH SYSTEM
     const initAuth = async () => {
-        document.getElementById('auth-status').innerText = "Autenticando...";
-        try {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await signInAnonymously(auth);
-            }
-        } catch (error) {
-            console.error("Auth Error:", error);
-            document.getElementById('auth-status').innerText = "Erro na Autenticação";
-            document.getElementById('auth-status').classList.add("text-red-500");
-        }
+        // Nada automático
     };
     initAuth();
 
     onAuthStateChanged(auth, (user) => {
+        const loginScreen = document.getElementById('login-screen');
+        const appContent = document.getElementById('app-content');
+        
         if (user) {
             currentUser = user;
-            document.getElementById('auth-status').innerText = `ID: ${user.uid.slice(0,5)}...`;
+            loginScreen.classList.add('hidden');
+            appContent.classList.remove('hidden');
+            let displayName = user.email ? user.email.split('@')[0] : 'Convidado';
+            document.getElementById('auth-status').innerText = `${displayName}`;
             document.getElementById('auth-status').classList.add("text-green-500");
             initFirestoreListener();
+        } else {
+            currentUser = null;
+            loginScreen.classList.remove('hidden');
+            appContent.classList.add('hidden');
+            document.getElementById('auth-status').innerText = "Desconectado";
         }
     });
+
+    window.fazerLogin = async () => {
+        const email = document.getElementById('login-email').value;
+        const pass = document.getElementById('login-password').value;
+        const btn = document.getElementById('btn-login');
+
+        if (!email || !pass) return showError("Preencha e-mail e senha.");
+
+        btn.innerHTML = '<div class="loader"></div>';
+        btn.disabled = true;
+        document.getElementById('login-error').classList.add('hidden');
+
+        try {
+            await signInWithEmailAndPassword(auth, email, pass);
+        } catch (error) {
+            console.error(error);
+            handleAuthError(error);
+            btn.innerText = "Entrar";
+            btn.disabled = false;
+        }
+    };
+
+    window.fazerCadastro = async () => {
+        const email = document.getElementById('login-email').value;
+        const pass = document.getElementById('login-password').value;
+        const btn = document.getElementById('btn-register');
+        
+        if (!email || !pass) return showError("Preencha e-mail e senha para cadastrar.");
+        if (pass.length < 6) return showError("Senha deve ter min. 6 caracteres.");
+
+        const originalText = btn.innerText;
+        btn.innerHTML = '<div class="loader"></div>';
+        btn.disabled = true;
+
+        try {
+            await createUserWithEmailAndPassword(auth, email, pass);
+        } catch (error) {
+            console.error(error);
+            handleAuthError(error);
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    };
+    
+    window.fazerLoginAnonimo = async () => {
+        const btn = document.getElementById('btn-guest');
+        const originalText = btn.innerText;
+        btn.innerHTML = '<div class="loader"></div>';
+        btn.disabled = true;
+
+        try {
+            await signInAnonymously(auth);
+        } catch (error) {
+            console.error(error);
+            handleAuthError(error);
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    };
+
+    window.fazerLogout = async () => {
+        try {
+            await signOut(auth);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    function handleAuthError(error) {
+        if (error.code === 'auth/operation-not-allowed') {
+            document.getElementById('firebase-help').classList.remove('hidden');
+            showError("Erro de Configuração: Ative o login no Firebase Console.");
+        } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+            showError("E-mail ou senha incorretos.");
+        } else if (error.code === 'auth/email-already-in-use') {
+            showError("Este e-mail já está cadastrado.");
+        } else {
+            showError("Erro: " + error.message);
+        }
+    }
+
+    function showError(msg) {
+        const errDiv = document.getElementById('login-error');
+        errDiv.innerText = msg;
+        errDiv.classList.remove('hidden');
+        errDiv.classList.add('shake');
+        setTimeout(() => errDiv.classList.remove('shake'), 500);
+        
+        document.getElementById('btn-login').disabled = false;
+        document.getElementById('btn-login').innerText = "Entrar";
+    }
 
     // 3. FIRESTORE LISTENER
     function initFirestoreListener() {
         if (!currentUser) return;
-        const productsRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'products');
+        
+        const productsRef = collection(db, 'users', currentUser.uid, 'products');
         
         onSnapshot(productsRef, (snapshot) => {
             const select = document.getElementById('saved-products');
@@ -294,32 +450,29 @@
             });
         }, (error) => {
             console.error("Firestore Error:", error);
+            if(error.code === 'permission-denied') {
+                console.warn("Aviso: Permissão negada. Verifique as regras no Firestore Database.");
+            }
         });
     }
 
-    // 4. NAME FORMATTING
+    // 4. NAME FORMATTING & SAVING
     const nameInput = document.getElementById('prod-name');
     nameInput.addEventListener('input', (e) => {
         let val = e.target.value;
         if(val.length > 0) {
-            // Capitalize first letter of string + replace spaces with underscore
-            // Ex: "tenis corrida" -> "Tenis_corrida"
             const firstLetter = val.charAt(0).toUpperCase();
             const rest = val.slice(1);
-            // Replace spaces with underscore globally
             const formatted = (firstLetter + rest).replace(/\s+/g, '_');
             e.target.value = formatted;
         }
     });
 
-    // 5. SAVE / EDIT
     window.salvarProduto = async () => {
-        if (!currentUser) return alert("Aguarde a autenticação.");
-        
+        if (!currentUser) return alert("Faça login novamente.");
         const name = document.getElementById('prod-name').value;
         if (!name) return alert("Digite um nome para o produto.");
 
-        // Coleta todos os dados do form
         const productData = {
             name: name,
             custo: document.getElementById('custo').value,
@@ -330,7 +483,7 @@
             descRelampago: document.getElementById('desc-relampago').value,
             margem: document.getElementById('margem-slider').value,
             precoVenda: document.getElementById('preco-venda').value,
-            conv: document.getElementById('conv').value,
+            cpcEst: document.getElementById('cpc-est').value, // Alterado de conv para cpcEst
             perfilAds: document.getElementById('perfil-ads').value,
             updatedAt: new Date().toISOString()
         };
@@ -341,118 +494,92 @@
         btn.disabled = true;
 
         try {
-            
             let docId = document.getElementById('prod-id').value;
-            let productRef;
+            const collectionRef = collection(db, 'users', currentUser.uid, 'products');
 
             if (docId && productsCache[docId]) {
-                // Edit existing
-                productRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'products', docId);
-                await updateDoc(productRef, productData);
+                await updateDoc(doc(collectionRef, docId), productData);
             } else {
-                const newRef = doc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'products'));
+                const newRef = doc(collectionRef);
                 docId = newRef.id;
                 await setDoc(newRef, productData);
                 document.getElementById('prod-id').value = docId;
             }
 
-            // Visual Feedback inside button
             btn.innerHTML = '<i class="fas fa-check"></i> Salvo!';
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }, 2000);
+            setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
 
         } catch (e) {
             console.error(e);
-            alert("Erro ao salvar.");
+            alert("Erro ao salvar. Verifique se você está logado e se as Regras do Firestore permitem gravação.");
             btn.innerHTML = originalText;
             btn.disabled = false;
         }
     };
 
-    // 6. LOAD
     window.carregarProduto = (id) => {
         if (!id || !productsCache[id]) {
-            // Clear fields if empty selection
             document.getElementById('prod-id').value = "";
             return;
         }
-
         const data = productsCache[id];
         document.getElementById('prod-id').value = id;
         document.getElementById('prod-name').value = data.name;
         
-        // Populate fields
         const fields = {
-            'custo': data.custo,
-            'taxa-fixa': data.taxaFixa,
-            'comissao': data.comissao,
-            'imposto': data.imposto,
-            'desc-cupom': data.descCupom,
-            'desc-relampago': data.descRelampago,
-            'margem-slider': data.margem,
-            'preco-venda': data.precoVenda,
-            'conv': data.conv,
+            'custo': data.custo, 'taxa-fixa': data.taxaFixa, 'comissao': data.comissao,
+            'imposto': data.imposto, 'desc-cupom': data.descCupom, 'desc-relampago': data.descRelampago,
+            'margem-slider': data.margem, 'preco-venda': data.precoVenda, 
+            'cpc-est': data.cpcEst || 0.11, // Carrega CPC estimado ou default
             'perfil-ads': data.perfilAds
         };
 
         for (const [key, val] of Object.entries(fields)) {
             if(document.getElementById(key)) document.getElementById(key).value = val || 0;
         }
-
-        // Trigger updates manually to refresh UI calculations
-        // We need to call the calculation functions from global scope
         window.atualizarPrecificacao('slider'); 
         window.calcularGeral();
     };
 
-    // 7. BACKUP (IMPORT / EXPORT)
     window.exportarBackup = () => {
         if (Object.keys(productsCache).length === 0) return alert("Nenhum produto para exportar.");
-        
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(productsCache));
-        const downloadAnchorNode = document.createElement('a');
-        downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", "backup_shopee_ads.json");
-        document.body.appendChild(downloadAnchorNode);
-        downloadAnchorNode.click();
-        downloadAnchorNode.remove();
+        const link = document.createElement('a');
+        link.setAttribute("href", dataStr);
+        link.setAttribute("download", "backup_shopee_ads.json");
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
     };
 
     window.importarBackup = async (input) => {
         if (!currentUser) return;
         const file = input.files[0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = async (e) => {
             try {
                 const json = JSON.parse(e.target.result);
                 const batch = writeBatch(db);
                 let count = 0;
-
+                const collectionRef = collection(db, 'users', currentUser.uid, 'products');
                 for (const [id, data] of Object.entries(json)) {
-                    const ref = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'products', id);
-                    batch.set(ref, data);
+                    batch.set(doc(collectionRef, id), data);
                     count++;
                 }
-
                 await batch.commit();
-                alert(`${count} produtos importados com sucesso!`);
+                alert(`${count} produtos importados!`);
             } catch (err) {
-                console.error(err);
-                alert("Erro ao importar arquivo. Verifique o formato.");
+                alert("Erro ao importar: " + err.message);
             }
         };
         reader.readAsText(file);
     };
-
 </script>
 
-<!-- Existing Logic Script (Modified for Global Access) -->
 <script>
-    const ids = ['custo', 'taxa-fixa', 'comissao', 'imposto', 'desc-cupom', 'desc-relampago', 'preco-venda', 'conv', 'perfil-ads'];
+    // Lógica de Negócio (Global)
+    const ids = ['custo', 'taxa-fixa', 'comissao', 'imposto', 'desc-cupom', 'desc-relampago', 'preco-venda', 'cpc-est', 'perfil-ads'];
     const els = {};
     ids.forEach(id => els[id] = document.getElementById(id));
     const margemSlider = document.getElementById('margem-slider');
@@ -466,17 +593,13 @@
         const descCupom = getVal('desc-cupom') / 100;
         const descRelampago = getVal('desc-relampago') / 100;
         const aposCupom = precoBase * (1 - descCupom);
-        const precoFinal = aposCupom * (1 - descRelampago);
-        return precoFinal;
+        return aposCupom * (1 - descRelampago);
     }
 
-    // Attached to window for Firebase script access
     window.atualizarPrecificacao = function(origem) {
         const custo = getVal('custo');
         const fixo = getVal('taxa-fixa');
         const taxasVariaveis = (getVal('comissao') + getVal('imposto')) / 100;
-        const descCupom = getVal('desc-cupom') / 100;
-        const descRelampago = getVal('desc-relampago') / 100;
         
         if (custo === 0) return;
 
@@ -488,6 +611,8 @@
             if (divisor <= 0.05) { els['preco-venda'].value = 0; return; }
             
             const precoFinalAlvo = (custo + fixo) / divisor;
+            const descCupom = getVal('desc-cupom') / 100;
+            const descRelampago = getVal('desc-relampago') / 100;
             const fatorDescontos = (1 - descCupom) * (1 - descRelampago);
             const precoBaseSugerido = precoFinalAlvo / fatorDescontos;
             
@@ -502,9 +627,7 @@
         const lucroLiquido = precoFinal - custo - fixo - custoTotalTaxas;
         
         lucroRealDisplay.innerText = "R$ " + lucroLiquido.toFixed(2);
-        
-        if (lucroLiquido < 0) lucroRealDisplay.className = "text-xl font-black text-red-600";
-        else lucroRealDisplay.className = "text-xl font-black text-green-600";
+        lucroRealDisplay.className = lucroLiquido < 0 ? "text-xl font-black text-red-600" : "text-xl font-black text-green-600";
 
         if (origem === 'manual' && precoFinal > 0) {
             const margemReal = (lucroLiquido / precoFinal) * 100;
@@ -523,7 +646,7 @@
         const fixo = getVal('taxa-fixa');
         const precoBase = getVal('preco-venda');
         const taxasVariaveis = (getVal('comissao') + getVal('imposto')) / 100;
-        const conv = getVal('conv') / 100;
+        const cpcEst = getVal('cpc-est');
         const perfilAds = getVal('perfil-ads');
 
         const precoFinal = calcularPrecoFinal(precoBase);
@@ -532,15 +655,25 @@
         
         // CÁLCULO DE ADS
         const cpaAlvo = Math.max(lucroUnit * 0.5, lucroUnit * perfilAds);
-        const cpcMax = cpaAlvo * conv;
+        
+        // Engenharia Reversa: Qual conversão eu preciso para pagar esse CPC com esse CPA?
+        // CPA = CPC / Conv -> Conv = CPC / CPA
+        const convMin = cpaAlvo > 0 ? (cpcEst / cpaAlvo) * 100 : 0;
 
         // CÁLCULO DE ROAS
         const roasBreakeven = lucroUnit > 0 ? (precoFinal / lucroUnit) : 0;
         const roasIdeal = cpaAlvo > 0 ? (precoFinal / cpaAlvo) : 0;
         
-        // Atualiza UI
+        const lucroPosAds = lucroUnit - cpaAlvo;
+
         document.getElementById('res-cpa').innerText = "R$ " + cpaAlvo.toFixed(2);
-        document.getElementById('res-cpc').innerText = "R$ " + cpcMax.toFixed(3);
+        
+        const elSobra = document.getElementById('res-cpa-restante');
+        elSobra.innerText = "Sobra: R$ " + lucroPosAds.toFixed(2);
+        elSobra.className = lucroPosAds >= 0 ? "block text-[10px] font-bold text-green-600 mt-1" : "block text-[10px] font-bold text-red-500 mt-1";
+
+        document.getElementById('res-conv').innerText = convMin.toFixed(2) + "%";
+        document.getElementById('res-conv-cpa').innerText = "Custo: R$ " + cpaAlvo.toFixed(2);
         document.getElementById('res-roas-breakeven').innerText = roasBreakeven.toFixed(2);
         document.getElementById('res-roas-ideal').innerText = roasIdeal.toFixed(2);
 
@@ -549,21 +682,27 @@
         const vTitulo = document.getElementById('veredito-titulo');
         const vTexto = document.getElementById('veredito-texto');
         
+        // Veredito Baseado na Dificuldade da Conversão
         if (lucroUnit <= 0) {
              vContainer.className = "p-4 rounded-xl border-l-4 shadow-sm flex items-start gap-3 bg-red-50 border-red-500";
              vIcon.innerHTML = "<i class='fas fa-skull text-red-500'></i>";
              vTitulo.innerText = "PREJUÍZO";
              vTexto.innerText = "Margem negativa. Revise preços ou custos.";
-        } else if (cpcMax < 0.11) {
+        } else if (convMin > 3.0) {
              vContainer.className = "p-4 rounded-xl border-l-4 shadow-sm flex items-start gap-3 bg-red-50 border-red-500";
              vIcon.innerHTML = "<i class='fas fa-exclamation-triangle text-red-500'></i>";
              vTitulo.innerText = "RISCO ALTO";
-             vTexto.innerText = `O CPC (R$ ${cpcMax.toFixed(3)}) é menor que o mínimo (R$ 0,11).`;
-        } else {
+             vTexto.innerText = `Você precisa de ${convMin.toFixed(1)}% de conversão. Isso é acima da média da Shopee (1.5% - 2%).`;
+        } else if (convMin < 1.0) {
              vContainer.className = "p-4 rounded-xl border-l-4 shadow-sm flex items-start gap-3 bg-green-50 border-green-500";
-             vIcon.innerHTML = "<i class='fas fa-check-circle text-green-500'></i>";
-             vTitulo.innerText = "VIÁVEL";
-             vTexto.innerText = "Luz verde para iniciar campanhas.";
+             vIcon.innerHTML = "<i class='fas fa-star text-green-500'></i>";
+             vTitulo.innerText = "MUITO VIÁVEL";
+             vTexto.innerText = `Fácil! Você só precisa de ${convMin.toFixed(1)}% de conversão para ter lucro.`;
+        } else {
+             vContainer.className = "p-4 rounded-xl border-l-4 shadow-sm flex items-start gap-3 bg-blue-50 border-blue-500";
+             vIcon.innerHTML = "<i class='fas fa-check-circle text-blue-500'></i>";
+             vTitulo.innerText = "VIÁVEL (PADRÃO)";
+             vTexto.innerText = `A meta de ${convMin.toFixed(1)}% é atingível para a maioria dos bons produtos.`;
         }
 
         renderizarProvaReal(precoBase, custo, fixo);
@@ -577,21 +716,16 @@
         const comissao = getVal('comissao');
         const imposto = getVal('imposto');
 
-        // Cálculos detalhados
         const valDescCupom = precoBase * (descCupom / 100);
         const precoAposCupom = precoBase - valDescCupom;
-        
         const valDescRelampago = precoAposCupom * (descRelampago / 100);
         const precoFinal = precoAposCupom - valDescRelampago;
-
         const valComissao = precoFinal * (comissao / 100);
         const valImposto = precoFinal * (imposto / 100);
-
         const custoTotal = custo + fixo + valComissao + valImposto;
         const lucroFinal = precoFinal - custoTotal;
 
         const container = document.getElementById('breakdown-container');
-        
         const row = (label, pct, val, colorClass='text-gray-600', isTotal=false) => `
             <div class="flex justify-between items-center ${isTotal ? 'font-bold border-t border-gray-300 pt-2 mt-2' : ''}">
                 <span class="${colorClass}">${label} ${pct ? `(${pct}%)` : ''}</span>
@@ -600,24 +734,17 @@
         `;
 
         container.innerHTML = `
-            ${row('Preço de Venda (Base)', null, precoBase, 'text-gray-800 font-bold')}
+            ${row('Preço Base', null, precoBase, 'text-gray-800 font-bold')}
             ${descCupom > 0 ? row('(-) Cupom Loja', descCupom, -valDescCupom, 'text-red-500') : ''}
             ${descRelampago > 0 ? row('(-) Oferta Relâmpago', descRelampago, -valDescRelampago, 'text-red-500') : ''}
-            
             <div class="border-t border-dashed border-gray-300 my-2"></div>
-            
-            ${row('(=) Receita Líquida (Base Taxas)', null, precoFinal, 'text-blue-800 font-bold')}
-            
-            ${row('(-) Custo do Produto', null, -custo, 'text-red-400')}
-            ${row('(-) Taxa Fixa Shopee', null, -fixo, 'text-red-400')}
-            ${row('(-) Comissão Shopee', comissao, -valComissao, 'text-red-400')}
+            ${row('(=) Receita Líquida', null, precoFinal, 'text-blue-800 font-bold')}
+            ${row('(-) Custo Produto', null, -custo, 'text-red-400')}
+            ${row('(-) Taxa Fixa', null, -fixo, 'text-red-400')}
+            ${row('(-) Comissão', comissao, -valComissao, 'text-red-400')}
             ${row('(-) Impostos', imposto, -valImposto, 'text-red-400')}
-            
-            ${row('(=) LUCRO LÍQUIDO FINAL', null, lucroFinal, lucroFinal >= 0 ? 'text-green-600 text-base' : 'text-red-600 text-base', true)}
-            
-            <div class="mt-2 text-[10px] text-gray-400 text-right">
-                Margem Real: ${((lucroFinal/precoFinal)*100).toFixed(2)}%
-            </div>
+            ${row('(=) LUCRO LÍQUIDO', null, lucroFinal, lucroFinal >= 0 ? 'text-green-600 text-base' : 'text-red-600 text-base', true)}
+            <div class="mt-2 text-[10px] text-gray-400 text-right">Margem Real: ${((lucroFinal/precoFinal)*100).toFixed(2)}%</div>
         `;
     }
 </script>
