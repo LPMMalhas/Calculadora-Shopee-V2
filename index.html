@@ -197,12 +197,12 @@
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-1">
-                            <label class="text-[9px] font-bold text-red-400 uppercase">1º Cupom Loja (%)</label>
-                            <input type="number" id="desc-cupom" value="0" class="w-full px-3 py-2 bg-white border border-red-200 rounded-lg text-sm font-bold text-center text-red-600 outline-none">
+                            <label class="text-[9px] font-bold text-red-400 uppercase">1º Oferta Relâmpago (%)</label>
+                            <input type="number" id="desc-relampago" value="0" class="w-full px-3 py-2 bg-white border border-red-200 rounded-lg text-sm font-bold text-center text-red-600 outline-none">
                         </div>
                         <div class="space-y-1">
-                            <label class="text-[9px] font-bold text-red-400 uppercase">2º Oferta Relâmpago (%)</label>
-                            <input type="number" id="desc-relampago" value="0" class="w-full px-3 py-2 bg-white border border-red-200 rounded-lg text-sm font-bold text-center text-red-600 outline-none">
+                            <label class="text-[9px] font-bold text-red-400 uppercase">2º Cupom Loja (%)</label>
+                            <input type="number" id="desc-cupom" value="0" class="w-full px-3 py-2 bg-white border border-red-200 rounded-lg text-sm font-bold text-center text-red-600 outline-none">
                         </div>
                     </div>
                 </div>
@@ -763,7 +763,9 @@
             const descC = (parseFloat(p.descCupom) || 0) / 100;
             const descR = (parseFloat(p.descRelampago) || 0) / 100;
             
-            const pFinal = (pBase * (1-descC)) * (1-descR);
+            // Replicar a ordem lógica do cálculo principal: 1º Relâmpago, 2º Cupom
+            const pAposRelampago = pBase * (1 - descR);
+            const pFinal = pAposRelampago * (1 - descC);
             
             const comissao = (parseFloat(p.comissao)||0)/100;
             const imposto = (parseFloat(p.imposto)||0)/100;
@@ -811,8 +813,9 @@
     function calcularPrecoFinal(precoBase) {
         const descCupom = getVal('desc-cupom') / 100;
         const descRelampago = getVal('desc-relampago') / 100;
-        const aposCupom = precoBase * (1 - descCupom);
-        return aposCupom * (1 - descRelampago);
+        // Ordem: Oferta Relâmpago -> Cupom Loja
+        const aposRelampago = precoBase * (1 - descRelampago);
+        return aposRelampago * (1 - descCupom);
     }
 
     window.toggleAdsMode = function() {
@@ -999,12 +1002,16 @@
         const comissao = getVal('comissao');
         const imposto = getVal('imposto');
 
-        const valDescCupom = precoBase * (descCupom / 100);
-        const precoAposCupom = precoBase - valDescCupom;
-        const valDescRelampago = precoAposCupom * (descRelampago / 100);
-        const precoFinal = precoAposCupom - valDescRelampago;
+        // Cálculos detalhados: 1º Oferta Relâmpago -> 2º Cupom Loja
+        const valDescRelampago = precoBase * (descRelampago / 100);
+        const precoAposRelampago = precoBase - valDescRelampago;
+        
+        const valDescCupom = precoAposRelampago * (descCupom / 100);
+        const precoFinal = precoAposRelampago - valDescCupom;
+
         const valComissao = precoFinal * (comissao / 100);
         const valImposto = precoFinal * (imposto / 100);
+
         const custoTotal = custo + fixo + valComissao + valImposto;
         const lucroFinal = precoFinal - custoTotal;
 
@@ -1017,17 +1024,24 @@
         `;
 
         container.innerHTML = `
-            ${row('Preço Base', null, precoBase, 'text-gray-800 font-bold')}
-            ${descCupom > 0 ? row('(-) Cupom Loja', descCupom, -valDescCupom, 'text-red-500') : ''}
+            ${row('Preço de Venda (Base)', null, precoBase, 'text-gray-800 font-bold')}
             ${descRelampago > 0 ? row('(-) Oferta Relâmpago', descRelampago, -valDescRelampago, 'text-red-500') : ''}
+            ${descCupom > 0 ? row('(-) Cupom Loja', descCupom, -valDescCupom, 'text-red-500') : ''}
+            
             <div class="border-t border-dashed border-gray-300 my-2"></div>
-            ${row('(=) Receita Líquida', null, precoFinal, 'text-blue-800 font-bold')}
-            ${row('(-) Custo Produto', null, -custo, 'text-red-400')}
-            ${row('(-) Taxa Fixa', null, -fixo, 'text-red-400')}
-            ${row('(-) Comissão', comissao, -valComissao, 'text-red-400')}
+            
+            ${row('(=) Receita Líquida (Base Taxas)', null, precoFinal, 'text-blue-800 font-bold')}
+            
+            ${row('(-) Custo do Produto', null, -custo, 'text-red-400')}
+            ${row('(-) Taxa Fixa Shopee', null, -fixo, 'text-red-400')}
+            ${row('(-) Comissão Shopee', comissao, -valComissao, 'text-red-400')}
             ${row('(-) Impostos', imposto, -valImposto, 'text-red-400')}
-            ${row('(=) LUCRO LÍQUIDO', null, lucroFinal, lucroFinal >= 0 ? 'text-green-600 text-base' : 'text-red-600 text-base', true)}
-            <div class="mt-2 text-[10px] text-gray-400 text-right">Margem Real: ${((lucroFinal/precoFinal)*100).toFixed(2)}%</div>
+            
+            ${row('(=) LUCRO LÍQUIDO FINAL', null, lucroFinal, lucroFinal >= 0 ? 'text-green-600 text-base' : 'text-red-600 text-base', true)}
+            
+            <div class="mt-2 text-[10px] text-gray-400 text-right">
+                Margem Real: ${((lucroFinal/precoFinal)*100).toFixed(2)}%
+            </div>
         `;
     }
 </script>
