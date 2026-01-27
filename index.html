@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Velt.AI - Precificação Cloud</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .shopee-gradient { background: linear-gradient(135deg, #ee4d2d 0%, #ff7337 100%); }
+        .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); }
+        input[type=range] { accent-color: #ee4d2d; }
+        input:focus { ring: 2px; ring-color: #ee4d2d; border-color: #ee4d2d; }
+        
+        /* Loading Spinner */
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #ee4d2d; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="text-gray-800 antialiased min-h-screen flex flex-col items-center py-4 md:py-8 px-4">
+
+    <div class="w-full max-w-2xl bg-white rounded-3xl overflow-hidden card-shadow">
+        
+        <!-- Header -->
+        <div class="shopee-gradient p-6 text-white text-center relative">
+            <div class="absolute top-5 right-5 opacity-40"><i class="fas fa-cloud text-3xl"></i></div>
+            <h1 class="text-2xl font-extrabold tracking-tight">Velt.AI <span class="font-light opacity-90">| Cloud</span></h1>
+            <p class="text-xs font-medium uppercase tracking-widest mt-1 opacity-90">Precificação, Ads & Firebase</p>
+        </div>
+
+        <div class="p-6 md:p-8 space-y-8">
+
+            <!-- 0. GESTÃO DE PRODUTOS (Firebase) -->
+            <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 md:p-5 relative">
+                <div class="absolute -top-3 left-4 bg-gray-800 text-white text-[10px] font-bold px-2 py-0.5 rounded">GESTÃO DE PRODUTOS</div>
+                
+                <!-- Status Bar -->
+                <div id="auth-status" class="text-[10px] text-right text-gray-400 mb-2">Conectando...</div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div class="md:col-span-2">
+                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Nome do Produto</label>
+                        <input type="text" id="prod-name" placeholder="Ex: Tenis_Corrida" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold outline-none focus:border-orange-500 uppercase transition-all">
+                        <input type="hidden" id="prod-id"> <!-- ID do Firestore -->
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Ação</label>
+                        <button onclick="salvarProduto()" id="btn-save" class="w-full py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-2">
+                            <i class="fas fa-save"></i> Salvar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lista de Produtos Salvos -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Carregar Salvos</label>
+                    <select id="saved-products" onchange="carregarProduto(this.value)" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm outline-none cursor-pointer">
+                        <option value="">Selecione um produto...</option>
+                    </select>
+                </div>
+
+                <!-- Backup Actions -->
+                <div class="flex justify-end gap-3 mt-4 pt-3 border-t border-gray-200">
+                    <button onclick="exportarBackup()" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 uppercase">
+                        <i class="fas fa-download"></i> Exportar Backup
+                    </button>
+                    <label class="text-[10px] font-bold text-green-600 hover:text-green-800 flex items-center gap-1 uppercase cursor-pointer">
+                        <i class="fas fa-upload"></i> Importar Backup
+                        <input type="file" id="import-file" class="hidden" onchange="importarBackup(this)">
+                    </label>
+                </div>
+            </div>
+            
+            <!-- 1. CUSTOS E TAXAS -->
+            <div class="space-y-4">
+                <div class="flex items-center gap-2 mb-2 border-b border-gray-100 pb-2">
+                    <div class="bg-orange-100 p-1.5 rounded-lg text-orange-600"><i class="fas fa-file-invoice-dollar text-sm"></i></div>
+                    <h2 class="text-sm font-bold text-gray-700 uppercase">1. Custos e Comissões</h2>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Custo Produto (R$)</label>
+                        <input type="number" id="custo" placeholder="0.00" step="0.01" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold outline-none transition-all">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Taxa Fixa Shopee (R$)</label>
+                        <input type="number" id="taxa-fixa" value="4.00" step="0.50" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold outline-none transition-all">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Comissão Shopee (%)</label>
+                        <input type="number" id="comissao" value="20" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold text-center outline-none">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Imposto (%)</label>
+                        <input type="number" id="imposto" value="4" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold text-center outline-none">
+                    </div>
+                </div>
+
+                <!-- Nova Seção: Descontos em Cascata -->
+                <div class="bg-red-50 p-4 rounded-xl border border-red-100">
+                    <div class="flex items-center gap-2 mb-2">
+                        <i class="fas fa-level-down-alt text-red-500"></i>
+                        <span class="text-xs font-bold text-red-700 uppercase">Descontos (Cascata)</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-bold text-red-400 uppercase">1º Cupom Loja (%)</label>
+                            <input type="number" id="desc-cupom" value="0" class="w-full px-3 py-2 bg-white border border-red-200 rounded-lg text-sm font-bold text-center text-red-600 outline-none">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-bold text-red-400 uppercase">2º Oferta Relâmpago (%)</label>
+                            <input type="number" id="desc-relampago" value="0" class="w-full px-3 py-2 bg-white border border-red-200 rounded-lg text-sm font-bold text-center text-red-600 outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calculadora -->
+                <div class="bg-blue-50 p-5 rounded-xl border border-blue-100 relative mt-6">
+                    <div class="absolute -top-3 left-4 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">Definir Margem no Preço Final</div>
+                    
+                    <div class="flex justify-between items-center mb-4 mt-2">
+                        <span class="text-xs font-bold text-blue-800">Margem Líquida Alvo</span>
+                        <span id="label-margem" class="text-lg font-black text-blue-600">15%</span>
+                    </div>
+                    
+                    <input type="range" id="margem-slider" min="5" max="50" value="15" class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                    
+                    <div class="grid grid-cols-2 gap-4 mt-5 pt-4 border-t border-blue-200">
+                        <div>
+                            <span class="block text-[9px] font-bold text-blue-400 uppercase mb-1">Preço Base (Sem Descontos)</span>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2 text-blue-500 text-xs font-bold">R$</span>
+                                <input type="number" id="preco-venda" step="0.01" class="w-full pl-8 pr-2 py-2 bg-white border border-blue-200 rounded-lg text-xl font-black text-blue-900 focus:outline-none focus:border-blue-500 shadow-sm">
+                            </div>
+                        </div>
+                        <div class="text-right flex flex-col justify-center">
+                            <span class="block text-[9px] font-bold text-gray-500 uppercase">Preço Final (Calculado)</span>
+                            <span id="preco-final-display" class="text-sm font-bold text-gray-700">R$ 0,00</span>
+                            <span class="block text-[9px] font-bold text-blue-400 uppercase mt-1">Lucro Líquido Real</span>
+                            <span id="lucro-real" class="text-xl font-black text-green-600">R$ 0,00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. ADS ESTRATÉGIA -->
+            <div class="space-y-4">
+                <div class="flex items-center gap-2 mb-2 border-b border-gray-100 pb-2">
+                    <div class="bg-orange-100 p-1.5 rounded-lg text-orange-600"><i class="fas fa-bullseye text-sm"></i></div>
+                    <h2 class="text-sm font-bold text-gray-700 uppercase">2. Estratégia de Ads</h2>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Conversão (%)</label>
+                        <input type="number" id="conv" value="1.5" step="0.1" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                    
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Perfil (Min 50% Lucro)</label>
+                        <select id="perfil-ads" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
+                            <option value="0.5" selected>⚖️ Equilibrado (50%)</option>
+                            <option value="0.75">🚀 Agressivo (75%)</option>
+                            <option value="0.95">👑 Dominação (95%)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="calcularGeral()" class="w-full py-4 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:bg-gray-800 transform active:scale-95 transition-all flex justify-center items-center gap-2 mt-4">
+                    <i class="fas fa-calculator text-yellow-400"></i> CALCULAR VIABILIDADE
+                </button>
+            </div>
+
+            <!-- RESULTADOS -->
+            <div id="results-area" class="hidden space-y-6 animate-fade-in border-t-2 border-dashed border-gray-200 pt-6">
+                
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 shadow-sm text-center">
+                        <span class="block text-[9px] uppercase font-bold text-gray-400 mb-1">ROAS Zero a Zero</span>
+                        <span id="res-roas-breakeven" class="text-lg font-black text-gray-600">0.00</span>
+                    </div>
+                    <div class="bg-green-50 p-3 rounded-xl border border-green-200 shadow-sm text-center relative">
+                        <div class="absolute -top-2 -right-2 bg-green-500 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold">META</div>
+                        <span class="block text-[9px] uppercase font-bold text-green-600 mb-1">ROAS Ideal</span>
+                        <span id="res-roas-ideal" class="text-xl font-black text-green-600">0.00</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm text-center">
+                        <span class="block text-[10px] uppercase font-bold text-gray-400 mb-1">CPA Teto</span>
+                        <span id="res-cpa" class="text-xl font-black text-gray-800">R$ 0,00</span>
+                    </div>
+                    <div class="bg-orange-50 p-3 rounded-xl border border-orange-200 shadow-sm text-center">
+                        <span class="block text-[10px] uppercase font-bold text-orange-600 mb-1">CPC Máximo</span>
+                        <span id="res-cpc" class="text-2xl font-black text-orange-600">R$ 0,00</span>
+                    </div>
+                </div>
+
+                <div id="veredito-container" class="p-4 rounded-xl border-l-4 shadow-sm flex items-start gap-3 bg-gray-50 border-gray-300">
+                    <div id="veredito-icon" class="text-2xl mt-1 text-gray-400"><i class="fas fa-info-circle"></i></div>
+                    <div>
+                        <h3 id="veredito-titulo" class="font-bold text-sm uppercase text-gray-700">Aguardando...</h3>
+                        <p id="veredito-texto" class="text-xs text-gray-600 mt-1">Preencha os dados.</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="bg-blue-100 p-1 rounded text-blue-600"><i class="fas fa-list-ol text-xs"></i></div>
+                        <h4 class="text-xs font-bold text-gray-700 uppercase">Prova Real (Detalhamento)</h4>
+                    </div>
+                    <div id="breakdown-container" class="bg-gray-50 p-5 rounded-xl border border-gray-200 text-sm space-y-3 font-mono">
+                        <!-- JS preenche aqui -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        
+        <div class="bg-gray-50 px-6 py-4 text-center border-t border-gray-100">
+            <p class="text-[10px] text-gray-400">© 2024 Velt.AI | CPC Mínimo Shopee: R$ 0,11.</p>
+        </div>
+
+    </div>
+
+<!-- FIREBASE & LOGIC -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // 1. CONFIG
+    const firebaseConfig = JSON.parse(__firebase_config);
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+    let productsCache = {}; // Cache local para exportação
+
+    // 2. AUTH
+    const initAuth = async () => {
+        document.getElementById('auth-status').innerText = "Autenticando...";
+        try {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
+            }
+        } catch (error) {
+            console.error("Auth Error:", error);
+            document.getElementById('auth-status').innerText = "Erro na Autenticação";
+            document.getElementById('auth-status').classList.add("text-red-500");
+        }
+    };
+    initAuth();
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUser = user;
+            document.getElementById('auth-status').innerText = `ID: ${user.uid.slice(0,5)}...`;
+            document.getElementById('auth-status').classList.add("text-green-500");
+            initFirestoreListener();
+        }
+    });
+
+    // 3. FIRESTORE LISTENER
+    function initFirestoreListener() {
+        if (!currentUser) return;
+        const productsRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'products');
+        
+        onSnapshot(productsRef, (snapshot) => {
+            const select = document.getElementById('saved-products');
+            select.innerHTML = '<option value="">Selecione um produto...</option>';
+            productsCache = {};
+
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                productsCache[doc.id] = data;
+                
+                const option = document.createElement('option');
+                option.value = doc.id;
+                option.innerText = data.name;
+                select.appendChild(option);
+            });
+        }, (error) => {
+            console.error("Firestore Error:", error);
+        });
+    }
+
+    // 4. NAME FORMATTING
+    const nameInput = document.getElementById('prod-name');
+    nameInput.addEventListener('input', (e) => {
+        let val = e.target.value;
+        if(val.length > 0) {
+            // Capitalize first letter of string + replace spaces with underscore
+            // Ex: "tenis corrida" -> "Tenis_corrida"
+            const firstLetter = val.charAt(0).toUpperCase();
+            const rest = val.slice(1);
+            // Replace spaces with underscore globally
+            const formatted = (firstLetter + rest).replace(/\s+/g, '_');
+            e.target.value = formatted;
+        }
+    });
+
+    // 5. SAVE / EDIT
+    window.salvarProduto = async () => {
+        if (!currentUser) return alert("Aguarde a autenticação.");
+        
+        const name = document.getElementById('prod-name').value;
+        if (!name) return alert("Digite um nome para o produto.");
+
+        // Coleta todos os dados do form
+        const productData = {
+            name: name,
+            custo: document.getElementById('custo').value,
+            taxaFixa: document.getElementById('taxa-fixa').value,
+            comissao: document.getElementById('comissao').value,
+            imposto: document.getElementById('imposto').value,
+            descCupom: document.getElementById('desc-cupom').value,
+            descRelampago: document.getElementById('desc-relampago').value,
+            margem: document.getElementById('margem-slider').value,
+            precoVenda: document.getElementById('preco-venda').value,
+            conv: document.getElementById('conv').value,
+            perfilAds: document.getElementById('perfil-ads').value,
+            updatedAt: new Date().toISOString()
+        };
+
+        const btn = document.getElementById('btn-save');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<div class="loader"></div>';
+        btn.disabled = true;
+
+        try {
+            
+            let docId = document.getElementById('prod-id').value;
+            let productRef;
+
+            if (docId && productsCache[docId]) {
+                // Edit existing
+                productRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'products', docId);
+                await updateDoc(productRef, productData);
+            } else {
+                const newRef = doc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'products'));
+                docId = newRef.id;
+                await setDoc(newRef, productData);
+                document.getElementById('prod-id').value = docId;
+            }
+
+            // Visual Feedback inside button
+            btn.innerHTML = '<i class="fas fa-check"></i> Salvo!';
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 2000);
+
+        } catch (e) {
+            console.error(e);
+            alert("Erro ao salvar.");
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    };
+
+    // 6. LOAD
+    window.carregarProduto = (id) => {
+        if (!id || !productsCache[id]) {
+            // Clear fields if empty selection
+            document.getElementById('prod-id').value = "";
+            return;
+        }
+
+        const data = productsCache[id];
+        document.getElementById('prod-id').value = id;
+        document.getElementById('prod-name').value = data.name;
+        
+        // Populate fields
+        const fields = {
+            'custo': data.custo,
+            'taxa-fixa': data.taxaFixa,
+            'comissao': data.comissao,
+            'imposto': data.imposto,
+            'desc-cupom': data.descCupom,
+            'desc-relampago': data.descRelampago,
+            'margem-slider': data.margem,
+            'preco-venda': data.precoVenda,
+            'conv': data.conv,
+            'perfil-ads': data.perfilAds
+        };
+
+        for (const [key, val] of Object.entries(fields)) {
+            if(document.getElementById(key)) document.getElementById(key).value = val || 0;
+        }
+
+        // Trigger updates manually to refresh UI calculations
+        // We need to call the calculation functions from global scope
+        window.atualizarPrecificacao('slider'); 
+        window.calcularGeral();
+    };
+
+    // 7. BACKUP (IMPORT / EXPORT)
+    window.exportarBackup = () => {
+        if (Object.keys(productsCache).length === 0) return alert("Nenhum produto para exportar.");
+        
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(productsCache));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "backup_shopee_ads.json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    };
+
+    window.importarBackup = async (input) => {
+        if (!currentUser) return;
+        const file = input.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const json = JSON.parse(e.target.result);
+                const batch = writeBatch(db);
+                let count = 0;
+
+                for (const [id, data] of Object.entries(json)) {
+                    const ref = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'products', id);
+                    batch.set(ref, data);
+                    count++;
+                }
+
+                await batch.commit();
+                alert(`${count} produtos importados com sucesso!`);
+            } catch (err) {
+                console.error(err);
+                alert("Erro ao importar arquivo. Verifique o formato.");
+            }
+        };
+        reader.readAsText(file);
+    };
+
+</script>
+
+<!-- Existing Logic Script (Modified for Global Access) -->
+<script>
+    const ids = ['custo', 'taxa-fixa', 'comissao', 'imposto', 'desc-cupom', 'desc-relampago', 'preco-venda', 'conv', 'perfil-ads'];
+    const els = {};
+    ids.forEach(id => els[id] = document.getElementById(id));
+    const margemSlider = document.getElementById('margem-slider');
+    const labelMargem = document.getElementById('label-margem');
+    const lucroRealDisplay = document.getElementById('lucro-real');
+    const precoFinalDisplay = document.getElementById('preco-final-display');
+
+    const getVal = (id) => parseFloat(els[id].value) || 0;
+
+    function calcularPrecoFinal(precoBase) {
+        const descCupom = getVal('desc-cupom') / 100;
+        const descRelampago = getVal('desc-relampago') / 100;
+        const aposCupom = precoBase * (1 - descCupom);
+        const precoFinal = aposCupom * (1 - descRelampago);
+        return precoFinal;
+    }
+
+    // Attached to window for Firebase script access
+    window.atualizarPrecificacao = function(origem) {
+        const custo = getVal('custo');
+        const fixo = getVal('taxa-fixa');
+        const taxasVariaveis = (getVal('comissao') + getVal('imposto')) / 100;
+        const descCupom = getVal('desc-cupom') / 100;
+        const descRelampago = getVal('desc-relampago') / 100;
+        
+        if (custo === 0) return;
+
+        if (origem === 'slider') {
+            const margemDesejada = parseFloat(margemSlider.value) / 100;
+            labelMargem.innerText = (margemDesejada * 100).toFixed(0) + "%";
+            
+            const divisor = 1 - (taxasVariaveis + margemDesejada);
+            if (divisor <= 0.05) { els['preco-venda'].value = 0; return; }
+            
+            const precoFinalAlvo = (custo + fixo) / divisor;
+            const fatorDescontos = (1 - descCupom) * (1 - descRelampago);
+            const precoBaseSugerido = precoFinalAlvo / fatorDescontos;
+            
+            els['preco-venda'].value = precoBaseSugerido.toFixed(2);
+        }
+
+        const precoBase = getVal('preco-venda');
+        const precoFinal = calcularPrecoFinal(precoBase);
+        precoFinalDisplay.innerText = "R$ " + precoFinal.toFixed(2);
+        
+        const custoTotalTaxas = precoFinal * taxasVariaveis;
+        const lucroLiquido = precoFinal - custo - fixo - custoTotalTaxas;
+        
+        lucroRealDisplay.innerText = "R$ " + lucroLiquido.toFixed(2);
+        
+        if (lucroLiquido < 0) lucroRealDisplay.className = "text-xl font-black text-red-600";
+        else lucroRealDisplay.className = "text-xl font-black text-green-600";
+
+        if (origem === 'manual' && precoFinal > 0) {
+            const margemReal = (lucroLiquido / precoFinal) * 100;
+            labelMargem.innerText = margemReal.toFixed(1) + "%";
+        }
+    };
+
+    ['custo', 'taxa-fixa', 'comissao', 'imposto', 'desc-cupom', 'desc-relampago'].forEach(id => {
+        els[id].addEventListener('input', () => window.atualizarPrecificacao('slider'));
+    });
+    margemSlider.addEventListener('input', () => window.atualizarPrecificacao('slider'));
+    els['preco-venda'].addEventListener('input', () => window.atualizarPrecificacao('manual'));
+
+    window.calcularGeral = function() {
+        const custo = getVal('custo');
+        const fixo = getVal('taxa-fixa');
+        const precoBase = getVal('preco-venda');
+        const taxasVariaveis = (getVal('comissao') + getVal('imposto')) / 100;
+        const conv = getVal('conv') / 100;
+        const perfilAds = getVal('perfil-ads');
+
+        const precoFinal = calcularPrecoFinal(precoBase);
+        const custoTotalTaxas = precoFinal * taxasVariaveis;
+        const lucroUnit = precoFinal - custo - fixo - custoTotalTaxas;
+        
+        // CÁLCULO DE ADS
+        const cpaAlvo = Math.max(lucroUnit * 0.5, lucroUnit * perfilAds);
+        const cpcMax = cpaAlvo * conv;
+
+        // CÁLCULO DE ROAS
+        const roasBreakeven = lucroUnit > 0 ? (precoFinal / lucroUnit) : 0;
+        const roasIdeal = cpaAlvo > 0 ? (precoFinal / cpaAlvo) : 0;
+        
+        // Atualiza UI
+        document.getElementById('res-cpa').innerText = "R$ " + cpaAlvo.toFixed(2);
+        document.getElementById('res-cpc').innerText = "R$ " + cpcMax.toFixed(3);
+        document.getElementById('res-roas-breakeven').innerText = roasBreakeven.toFixed(2);
+        document.getElementById('res-roas-ideal').innerText = roasIdeal.toFixed(2);
+
+        const vContainer = document.getElementById('veredito-container');
+        const vIcon = document.getElementById('veredito-icon');
+        const vTitulo = document.getElementById('veredito-titulo');
+        const vTexto = document.getElementById('veredito-texto');
+        
+        if (lucroUnit <= 0) {
+             vContainer.className = "p-4 rounded-xl border-l-4 shadow-sm flex items-start gap-3 bg-red-50 border-red-500";
+             vIcon.innerHTML = "<i class='fas fa-skull text-red-500'></i>";
+             vTitulo.innerText = "PREJUÍZO";
+             vTexto.innerText = "Margem negativa. Revise preços ou custos.";
+        } else if (cpcMax < 0.11) {
+             vContainer.className = "p-4 rounded-xl border-l-4 shadow-sm flex items-start gap-3 bg-red-50 border-red-500";
+             vIcon.innerHTML = "<i class='fas fa-exclamation-triangle text-red-500'></i>";
+             vTitulo.innerText = "RISCO ALTO";
+             vTexto.innerText = `O CPC (R$ ${cpcMax.toFixed(3)}) é menor que o mínimo (R$ 0,11).`;
+        } else {
+             vContainer.className = "p-4 rounded-xl border-l-4 shadow-sm flex items-start gap-3 bg-green-50 border-green-500";
+             vIcon.innerHTML = "<i class='fas fa-check-circle text-green-500'></i>";
+             vTitulo.innerText = "VIÁVEL";
+             vTexto.innerText = "Luz verde para iniciar campanhas.";
+        }
+
+        renderizarProvaReal(precoBase, custo, fixo);
+        document.getElementById('results-area').classList.remove('hidden');
+        document.getElementById('results-area').scrollIntoView({ behavior: 'smooth' });
+    };
+
+    function renderizarProvaReal(precoBase, custo, fixo) {
+        const descCupom = getVal('desc-cupom');
+        const descRelampago = getVal('desc-relampago');
+        const comissao = getVal('comissao');
+        const imposto = getVal('imposto');
+
+        // Cálculos detalhados
+        const valDescCupom = precoBase * (descCupom / 100);
+        const precoAposCupom = precoBase - valDescCupom;
+        
+        const valDescRelampago = precoAposCupom * (descRelampago / 100);
+        const precoFinal = precoAposCupom - valDescRelampago;
+
+        const valComissao = precoFinal * (comissao / 100);
+        const valImposto = precoFinal * (imposto / 100);
+
+        const custoTotal = custo + fixo + valComissao + valImposto;
+        const lucroFinal = precoFinal - custoTotal;
+
+        const container = document.getElementById('breakdown-container');
+        
+        const row = (label, pct, val, colorClass='text-gray-600', isTotal=false) => `
+            <div class="flex justify-between items-center ${isTotal ? 'font-bold border-t border-gray-300 pt-2 mt-2' : ''}">
+                <span class="${colorClass}">${label} ${pct ? `(${pct}%)` : ''}</span>
+                <span class="${colorClass}">${val < 0 ? '-' : ''} R$ ${Math.abs(val).toFixed(2)}</span>
+            </div>
+        `;
+
+        container.innerHTML = `
+            ${row('Preço de Venda (Base)', null, precoBase, 'text-gray-800 font-bold')}
+            ${descCupom > 0 ? row('(-) Cupom Loja', descCupom, -valDescCupom, 'text-red-500') : ''}
+            ${descRelampago > 0 ? row('(-) Oferta Relâmpago', descRelampago, -valDescRelampago, 'text-red-500') : ''}
+            
+            <div class="border-t border-dashed border-gray-300 my-2"></div>
+            
+            ${row('(=) Receita Líquida (Base Taxas)', null, precoFinal, 'text-blue-800 font-bold')}
+            
+            ${row('(-) Custo do Produto', null, -custo, 'text-red-400')}
+            ${row('(-) Taxa Fixa Shopee', null, -fixo, 'text-red-400')}
+            ${row('(-) Comissão Shopee', comissao, -valComissao, 'text-red-400')}
+            ${row('(-) Impostos', imposto, -valImposto, 'text-red-400')}
+            
+            ${row('(=) LUCRO LÍQUIDO FINAL', null, lucroFinal, lucroFinal >= 0 ? 'text-green-600 text-base' : 'text-red-600 text-base', true)}
+            
+            <div class="mt-2 text-[10px] text-gray-400 text-right">
+                Margem Real: ${((lucroFinal/precoFinal)*100).toFixed(2)}%
+            </div>
+        `;
+    }
+</script>
+
+</body>
+</html>
