@@ -27,13 +27,13 @@
 
         /* ESTILOS DE IMPRESSÃO (PDF - OTIMIZADO A4) */
         @media print {
-            @page { margin: 1cm; size: A4; }
+            @page { margin: 0.5cm; size: A4; }
             
             body { 
                 background-color: white; 
                 -webkit-print-color-adjust: exact; 
                 print-color-adjust: exact;
-                font-size: 10px; 
+                font-size: 9px; 
             }
 
             #login-screen, button, .no-print, #tab-calc, #tab-dash, #tab-ads,
@@ -45,34 +45,38 @@
 
             #app-content { 
                 box-shadow: none; max-width: 100%; width: 100%; margin: 0; border-radius: 0;
+                transform: scale(0.95); transform-origin: top center;
             }
 
             .shopee-gradient { 
                 background: #ee4d2d !important; color: white !important; 
-                -webkit-print-color-adjust: exact; padding: 15px !important;
-                border-radius: 0 !important; margin-bottom: 10px !important;
+                -webkit-print-color-adjust: exact; padding: 10px !important;
+                border-radius: 0 !important; margin-bottom: 5px !important;
             }
 
-            .p-6, .p-8, .md\:p-8, .p-5, .p-4 { padding: 5px !important; }
-            .space-y-8 > :not([hidden]) ~ :not([hidden]) { margin-top: 10px !important; }
-            .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 5px !important; }
+            .p-6, .p-8, .md\:p-8, .p-5, .p-4 { padding: 4px !important; }
+            .space-y-8 > :not([hidden]) ~ :not([hidden]) { margin-top: 6px !important; }
+            .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 4px !important; }
+            .mb-8, .mb-4, .mb-3, .mb-2 { margin-bottom: 2px !important; }
+            .gap-4 { gap: 6px !important; }
             
             input, select { 
                 border: none !important; background: transparent !important; 
                 appearance: none; -webkit-appearance: none; padding: 0 !important; 
-                font-weight: bold; color: #000; font-size: 11px !important;
+                font-weight: bold; color: #000; font-size: 10px !important;
                 height: auto !important; width: auto !important; display: inline-block;
             }
 
             .bg-gray-50, .bg-blue-50, .bg-red-50, .bg-green-50, .bg-orange-50, .bg-purple-50 {
                 background-color: transparent !important;
-                border: 1px solid #ddd !important; border-radius: 6px !important;
-                padding: 5px !important;
+                border: 1px solid #e5e7eb !important; border-radius: 4px !important;
+                padding: 4px !important;
             }
             
-            /* Garante que o que está na tela seja impresso */
-            .hidden { display: none !important; }
-            
+            #results-area, #camp-results, .grid { page-break-inside: avoid; }
+            #view-calc, #view-ads-analysis { display: block !important; }
+            .hidden { display: none !important; } 
+            .fa-chevron-down, .absolute.left-3, .absolute.right-3 { display: none !important; }
             input[type=number] { padding-left: 0 !important; }
         }
     </style>
@@ -398,7 +402,7 @@
             </div>
         </div>
 
-        <!-- ABA ANÁLISE ADS -->
+        <!-- ABA ANÁLISE ADS (NOVA) -->
         <div id="view-ads-analysis" class="hidden p-6 md:p-8 space-y-8 animate-fade-in">
              <div class="flex items-center gap-2 mb-2 border-b border-gray-100 pb-2">
                 <div class="bg-purple-100 p-1.5 rounded-lg text-purple-600 no-print"><i class="fas fa-microscope text-sm"></i></div>
@@ -537,6 +541,11 @@
     window.getVal = (id) => parseFloat(document.getElementById(id).value) || 0;
 
     // 2. AUTH SYSTEM
+    const initAuth = async () => {
+        // Nada automático
+    };
+    initAuth();
+
     onAuthStateChanged(auth, (user) => {
         const loginScreen = document.getElementById('login-screen');
         const appContent = document.getElementById('app-content');
@@ -560,11 +569,21 @@
         const email = document.getElementById('login-email').value;
         const pass = document.getElementById('login-password').value;
         const btn = document.getElementById('btn-login');
+
         if (!email || !pass) return showError("Preencha e-mail e senha.");
+
         btn.innerHTML = '<div class="loader"></div>';
         btn.disabled = true;
         document.getElementById('login-error').classList.add('hidden');
-        try { await signInWithEmailAndPassword(auth, email, pass); } catch (error) { handleAuthError(error); btn.innerText = "Entrar"; btn.disabled = false; }
+
+        try {
+            await signInWithEmailAndPassword(auth, email, pass);
+        } catch (error) {
+            console.error(error);
+            handleAuthError(error);
+            btn.innerText = "Entrar";
+            btn.disabled = false;
+        }
     };
 
     window.fazerCadastro = async () => {
