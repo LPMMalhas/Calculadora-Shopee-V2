@@ -33,13 +33,13 @@
                 background-color: white; 
                 -webkit-print-color-adjust: exact; 
                 print-color-adjust: exact;
-                font-size: 10px; /* Fonte base reduzida */
+                font-size: 9px; /* Fonte reduzida para caber */
             }
 
             /* Ocultar elementos de navegação e interação */
             #login-screen, button, .no-print, #tab-calc, #tab-dash, 
             #auth-status-container, #firebase-help, .fa-print, .fa-sign-out-alt, 
-            input[type=range], #btn-delete, #btn-save { 
+            input[type=range], #btn-delete, #btn-save, .fa-plus, .fa-save, .fa-trash-alt { 
                 display: none !important; 
             }
 
@@ -49,6 +49,8 @@
                 width: 100%; 
                 margin: 0; 
                 border-radius: 0;
+                transform: scale(0.95); /* Escala para garantir que caiba */
+                transform-origin: top center;
             }
 
             /* Cabeçalho compacto */
@@ -58,19 +60,22 @@
                 -webkit-print-color-adjust: exact; 
                 padding: 10px !important;
                 border-radius: 0 !important;
+                margin-bottom: 5px !important;
             }
+            .shopee-gradient h1 { font-size: 14px !important; }
+            .shopee-gradient p { font-size: 8px !important; }
 
             /* Compactação Extrema de Espaçamentos */
-            .p-6, .p-8, .md\:p-8, .p-5, .p-4 { padding: 6px !important; }
-            .space-y-8 > :not([hidden]) ~ :not([hidden]) { margin-top: 8px !important; }
+            .p-6, .p-8, .md\:p-8, .p-5, .p-4 { padding: 4px !important; }
+            .space-y-8 > :not([hidden]) ~ :not([hidden]) { margin-top: 6px !important; }
             .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 4px !important; }
-            .mb-8, .mb-4, .mb-3, .mb-2 { margin-bottom: 4px !important; }
-            .gap-4 { gap: 6px !important; }
-            .gap-3 { gap: 4px !important; }
-            .gap-2 { gap: 4px !important; }
-            .mt-6, .mt-5, .mt-4 { margin-top: 6px !important; }
+            .mb-8, .mb-4, .mb-3, .mb-2 { margin-bottom: 2px !important; }
+            .gap-4 { gap: 4px !important; }
+            .gap-3 { gap: 2px !important; }
+            .gap-2 { gap: 2px !important; }
+            .mt-6, .mt-5, .mt-4 { margin-top: 4px !important; }
             
-            /* Inputs limpos (parecendo texto) */
+            /* Inputs limpos */
             input, select { 
                 border: none !important; 
                 background: transparent !important; 
@@ -79,42 +84,35 @@
                 padding: 0 !important; 
                 font-weight: bold; 
                 color: #000; 
-                font-size: 11px !important;
+                font-size: 10px !important;
                 height: auto !important;
                 width: auto !important;
                 display: inline-block;
             }
 
-            /* Remover fundos coloridos para economizar tinta e limpar visual */
+            /* Containers */
             .bg-gray-50, .bg-blue-50, .bg-red-50, .bg-green-50, .bg-orange-50 {
                 background-color: transparent !important;
-                border: 1px solid #e5e7eb !important; /* Borda cinza suave */
+                border: 1px solid #e5e7eb !important; 
                 border-radius: 4px !important;
+                padding: 4px !important;
             }
-
-            /* Ajustes visuais específicos para inputs */
-            input[type=number]::-webkit-inner-spin-button, 
-            input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+            
+            /* Tipografia */
+            h1 { font-size: 14px !important; }
+            h2, h3, h4 { font-size: 11px !important; color: #333 !important; }
+            label, span, p { font-size: 8px !important; }
+            .text-2xl, .text-xl { font-size: 12px !important; }
+            .text-lg { font-size: 10px !important; }
+            
+            /* Evitar quebras */
+            #results-area, .grid, .flex { page-break-inside: avoid; }
+            
+            #view-calc { display: block !important; padding-top: 0 !important; }
+            
+            /* Ocultar elementos decorativos */
             .fa-chevron-down, .absolute.left-3, .absolute.right-3 { display: none !important; }
-            
-            /* Ajustes de Tipografia */
-            h1 { font-size: 16px !important; }
-            h2, h3, h4 { font-size: 12px !important; color: #333 !important; }
-            label, span, p { font-size: 9px !important; }
-            .text-2xl, .text-xl { font-size: 13px !important; }
-            .text-lg { font-size: 11px !important; }
-            
-            /* Break Page Avoidance */
-            #results-area { 
-                border-top: 1px dashed #999; 
-                padding-top: 5px; 
-                margin-top: 5px; 
-                page-break-inside: avoid; 
-            }
-            .grid { display: grid !important; }
-            
-            /* Forçar visibilidade do conteúdo */
-            #view-calc { display: block !important; }
+            input[type=number] { padding-left: 0 !important; }
         }
     </style>
 </head>
@@ -189,7 +187,7 @@
                 <p class="text-xs font-medium uppercase tracking-widest mt-1 opacity-90">Precificação, Ads & Firebase</p>
             </div>
             <div class="flex gap-4">
-                <i class="fas fa-print cursor-pointer text-white text-xl opacity-80 hover:opacity-100 transition-opacity" onclick="window.print()" title="Imprimir / Salvar PDF"></i>
+                <i class="fas fa-print cursor-pointer text-white text-xl opacity-80 hover:opacity-100 transition-opacity" onclick="imprimirRelatorio()" title="Imprimir / Salvar PDF"></i>
                 <i class="fas fa-sign-out-alt cursor-pointer text-white text-xl opacity-60 hover:opacity-100 transition-opacity no-print" onclick="fazerLogout()" title="Sair da Conta"></i>
             </div>
         </div>
@@ -314,7 +312,7 @@
                     </div>
                 </div>
 
-                <div class="bg-blue-50 p-5 rounded-xl border border-blue-100 relative mt-6">
+                <div class="bg-blue-50 p-5 rounded-xl border border-blue-100 relative mt-6 no-print">
                     <div class="absolute -top-3 left-4 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded no-print">Definir Margem no Preço Final</div>
                     <div class="flex justify-between items-center mb-4 mt-2">
                         <span class="text-xs font-bold text-blue-800">Margem Líquida Alvo</span>
@@ -340,7 +338,7 @@
             </div>
 
             <!-- 2. ADS ESTRATÉGIA -->
-            <div class="space-y-4">
+            <div class="space-y-4 no-print">
                 <div class="flex items-center gap-2 mb-2 border-b border-gray-100 pb-2">
                     <div class="bg-orange-100 p-1.5 rounded-lg text-orange-600 no-print"><i class="fas fa-bullseye text-sm"></i></div>
                     <h2 class="text-sm font-bold text-gray-700 uppercase">2. Estratégia de Ads</h2>
@@ -1271,6 +1269,18 @@
                 Margem Real: ${((lucroFinal/precoFinal)*100).toFixed(2)}%
             </div>
         `;
+    }
+
+    // Função de impressão com nome de arquivo
+    window.imprimirRelatorio = function() {
+        const nomeProd = document.getElementById('prod-name').value || "Relatorio_Precificacao";
+        // Substitui espaços por underscores e caracteres especiais
+        const safeName = nomeProd.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        
+        const originalTitle = document.title;
+        document.title = safeName;
+        window.print();
+        document.title = originalTitle;
     }
 </script>
 
