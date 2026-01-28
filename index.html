@@ -369,7 +369,7 @@
                         <span id="res-cpa" class="text-xl font-black text-purple-700">R$ 0,00</span>
                         <span id="res-cpa-restante" class="block text-[10px] font-bold text-gray-400 mt-1">Sobra: R$ 0,00</span>
                     </div>
-                    <!-- CARD DINÂMICO -->
+                    <!-- CARD DINÂMICO (CPC MÁX ou CONVERSÃO MÍN) -->
                     <div class="bg-orange-50 p-3 rounded-xl border border-orange-200 shadow-sm text-center">
                         <span id="lbl-res-secondary" class="block text-[10px] uppercase font-bold text-orange-600 mb-1">Taxa de Conversão Mínima</span>
                         <span id="res-secondary-val" class="text-2xl font-black text-orange-600">0.00%</span>
@@ -528,7 +528,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Global variables
+    // Global variables accessible to window
     window.currentUser = null;
     window.productsCache = {};
     window.selectedAdsProduct = null;
@@ -886,6 +886,11 @@
 
 
     window.atualizarPrecificacao = function(origem) {
+        // 1. Update UI Label immediately
+        if (origem === 'slider') {
+             document.getElementById('label-margem').innerText = margemSlider.value + "%";
+        }
+        
         const custo = window.getVal('custo');
         const extra = window.getVal('extra');
         const fixo = window.getVal('taxa-fixa');
@@ -896,7 +901,6 @@
 
         if (origem === 'slider') {
             const margemDesejada = parseFloat(margemSlider.value) / 100;
-            // document.getElementById('label-margem').innerText = (margemDesejada * 100).toFixed(0) + "%"; // Removed label update here, it's done by slider value
             const divisor = 1 - taxasVariaveis - margemDesejada;
             if (divisor <= 0.05) { els['preco-venda'].value = 0; return; }
             const precoFinalAlvo = custosFixosReais / divisor;
