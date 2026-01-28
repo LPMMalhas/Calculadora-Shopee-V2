@@ -174,14 +174,18 @@
                         <input type="number" id="custo" placeholder="0.00" step="0.01" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold outline-none transition-all">
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Taxa Fixa Shopee (R$)</label>
-                        <input type="number" id="taxa-fixa" value="4.00" step="0.50" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold outline-none transition-all">
+                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Extras (Embalagem) (R$)</label>
+                        <input type="number" id="extra" value="0.00" step="0.01" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold outline-none transition-all" placeholder="0.00">
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-3 gap-3">
                     <div class="space-y-1">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Comissão Shopee (%)</label>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Fixa Shopee (R$)</label>
+                        <input type="number" id="taxa-fixa" value="4.00" step="0.50" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold text-center outline-none">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Comissão (%)</label>
                         <input type="number" id="comissao" value="20" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold text-center outline-none">
                     </div>
                     <div class="space-y-1">
@@ -193,7 +197,7 @@
                 <div class="bg-red-50 p-4 rounded-xl border border-red-100">
                     <div class="flex items-center gap-2 mb-2">
                         <i class="fas fa-level-down-alt text-red-500"></i>
-                        <span class="text-xs font-bold text-red-700 uppercase">Descontos (Cascata)</span>
+                        <span class="text-xs font-bold text-red-700 uppercase">Descontos & Perdas</span>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-1">
@@ -203,6 +207,11 @@
                         <div class="space-y-1">
                             <label class="text-[9px] font-bold text-red-400 uppercase">2º Cupom Loja (%)</label>
                             <input type="number" id="desc-cupom" value="0" class="w-full px-3 py-2 bg-white border border-red-200 rounded-lg text-sm font-bold text-center text-red-600 outline-none">
+                        </div>
+                        <!-- Devolução movida para aqui -->
+                        <div class="space-y-1 col-span-2">
+                            <label class="text-[9px] font-bold text-red-400 uppercase">3º Est. Devolução (%)</label>
+                            <input type="number" id="devolucao" value="0" step="0.1" class="w-full px-3 py-2 bg-white border border-red-200 rounded-lg text-sm font-bold text-center text-red-600 outline-none" placeholder="Ex: 3%">
                         </div>
                     </div>
                 </div>
@@ -243,30 +252,32 @@
                     <!-- Seletor de Modo -->
                     <div class="space-y-1">
                         <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Base de Cálculo</label>
-                        <select id="ads-mode" onchange="toggleAdsMode()" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold text-gray-700 focus:ring-2 focus:ring-orange-500 outline-none">
+                        <select id="ads-mode" onchange="toggleAdsMode(); calcularGeral(false);" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold text-gray-700 focus:ring-2 focus:ring-orange-500 outline-none">
                             <option value="cpc">Tenho o CPC (R$)</option>
                             <option value="conv">Tenho a Conversão (%)</option>
+                            <option value="none">Sem dados (Simular Mínimos)</option>
                         </select>
                     </div>
                     
                     <!-- Campo Dinâmico (CPC ou Conversão) -->
-                    <div class="space-y-1">
+                    <div class="space-y-1" id="ads-input-container">
                         <label id="lbl-ads-input" class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">CPC Estimado (R$)</label>
                         <input type="number" id="ads-input" value="0.11" step="0.01" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
                     </div>
                     
                     <!-- Perfil -->
                     <div class="col-span-2 space-y-1">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Perfil (Min 50% Lucro)</label>
-                        <select id="perfil-ads" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
-                            <option value="0.5" selected>⚖️ Equilibrado (50%)</option>
-                            <option value="0.75">🚀 Agressivo (75%)</option>
-                            <option value="0.95">👑 Dominação (95%)</option>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Perfil</label>
+                        <select id="perfil-ads" onchange="calcularGeral(false)" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
+                            <option value="0.5" selected>⚖️ Equilibrado (Min 50% Lucro)</option>
+                            <option value="0.75">🚀 Agressivo (75% Lucro)</option>
+                            <option value="0.95">👑 Dominação (95% Lucro)</option>
+                            <option value="0">🌱 Sem Ads (100% Lucro)</option>
                         </select>
                     </div>
                 </div>
 
-                <button onclick="calcularGeral()" class="w-full py-4 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:bg-gray-800 transform active:scale-95 transition-all flex justify-center items-center gap-2 mt-4">
+                <button onclick="calcularGeral(true)" class="w-full py-4 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:bg-gray-800 transform active:scale-95 transition-all flex justify-center items-center gap-2 mt-4">
                     <i class="fas fa-calculator text-yellow-400"></i> CALCULAR VIABILIDADE
                 </button>
             </div>
@@ -277,14 +288,14 @@
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 shadow-sm text-center flex flex-col justify-center">
                         <span class="block text-[9px] uppercase font-bold text-gray-400 mb-1">Breakeven (Zero a Zero)</span>
-                        <span id="res-acos-breakeven" class="text-xl font-black text-gray-600">ACOS: 0%</span>
-                        <span id="res-roas-breakeven" class="block text-[9px] font-bold text-gray-400 mt-1">ROAS: 0.00</span>
+                        <span id="res-roas-breakeven" class="text-xl font-black text-gray-600">ROAS: 0.00</span>
+                        <span id="res-acos-breakeven" class="block text-[10px] font-bold text-gray-400 mt-1">ACOS: 0%</span>
                     </div>
                     <div class="bg-green-50 p-3 rounded-xl border border-green-200 shadow-sm text-center relative flex flex-col justify-center">
                         <div class="absolute -top-2 -right-2 bg-green-500 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold">META</div>
                         <span class="block text-[9px] uppercase font-bold text-green-600 mb-1">Ideal (Meta)</span>
-                        <span id="res-acos-ideal" class="text-2xl font-black text-green-600">ACOS: 0%</span>
-                        <span id="res-roas-ideal" class="block text-[10px] font-bold text-green-600 mt-1">ROAS: 0.00</span>
+                        <span id="res-roas-ideal" class="text-2xl font-black text-green-600">ROAS: 0.00</span>
+                        <span id="res-acos-ideal" class="block text-[10px] font-bold text-green-600 mt-1">ACOS: 0%</span>
                     </div>
                 </div>
 
@@ -554,6 +565,8 @@
         // Reset defaults
         document.getElementById('custo').value = "";
         document.getElementById('preco-venda').value = "";
+        document.getElementById('extra').value = "0.00";
+        document.getElementById('devolucao').value = "0";
         window.atualizarPrecificacao('slider');
     };
 
@@ -589,9 +602,11 @@
         const productData = {
             name: name,
             custo: document.getElementById('custo').value,
+            extra: document.getElementById('extra').value,
             taxaFixa: document.getElementById('taxa-fixa').value,
             comissao: document.getElementById('comissao').value,
             imposto: document.getElementById('imposto').value,
+            devolucao: document.getElementById('devolucao').value,
             descCupom: document.getElementById('desc-cupom').value,
             descRelampago: document.getElementById('desc-relampago').value,
             margem: document.getElementById('margem-slider').value,
@@ -663,9 +678,11 @@
 
         const fields = {
             'custo': data.custo, 
+            'extra': data.extra,
             'taxa-fixa': data.taxaFixa, 
             'comissao': data.comissao,
             'imposto': data.imposto, 
+            'devolucao': data.devolucao,
             'desc-cupom': data.descCupom, 
             'desc-relampago': data.descRelampago,
             'margem-slider': data.margem, 
@@ -677,14 +694,14 @@
 
         for (const [key, val] of Object.entries(fields)) {
             const el = document.getElementById(key);
-            if(el) el.value = val;
+            if(el) el.value = val !== undefined ? val : (key === 'extra' || key === 'devolucao' ? 0 : el.value);
         }
         
         window.toggleAdsMode();
         
         // CORREÇÃO CRÍTICA: Use 'manual' para preservar o preço carregado
         window.atualizarPrecificacao('manual'); 
-        window.calcularGeral();
+        window.calcularGeral(false);
     };
 
     window.exportarBackup = () => {
@@ -760,6 +777,7 @@
             // Recalcula lucros para exibir na tabela
             const pBase = parseFloat(p.precoVenda) || 0;
             const custo = parseFloat(p.custo) || 0;
+            const extra = parseFloat(p.extra) || 0;
             const fixo = parseFloat(p.taxaFixa) || 0;
             
             const descC = (parseFloat(p.descCupom) || 0) / 100;
@@ -771,9 +789,10 @@
             
             const comissao = (parseFloat(p.comissao)||0)/100;
             const imposto = (parseFloat(p.imposto)||0)/100;
+            const devolucao = (parseFloat(p.devolucao)||0)/100;
             
-            const taxasTotal = pFinal * (comissao + imposto);
-            const lucro = pFinal - custo - fixo - taxasTotal;
+            const taxasTotal = pFinal * (comissao + imposto + devolucao);
+            const lucro = pFinal - custo - extra - fixo - taxasTotal;
             const margem = pFinal > 0 ? (lucro / pFinal) * 100 : 0;
 
             const lucroClass = lucro >= 0 ? "text-green-600" : "text-red-600";
@@ -802,7 +821,7 @@
 
 <script>
     // Lógica de Negócio (Global)
-    const ids = ['custo', 'taxa-fixa', 'comissao', 'imposto', 'desc-cupom', 'desc-relampago', 'preco-venda', 'ads-input', 'perfil-ads'];
+    const ids = ['custo', 'extra', 'taxa-fixa', 'comissao', 'imposto', 'devolucao', 'desc-cupom', 'desc-relampago', 'preco-venda', 'ads-input', 'perfil-ads'];
     const els = {};
     ids.forEach(id => els[id] = document.getElementById(id));
     const margemSlider = document.getElementById('margem-slider');
@@ -824,35 +843,71 @@
         const mode = document.getElementById('ads-mode').value;
         const label = document.getElementById('lbl-ads-input');
         const input = document.getElementById('ads-input');
+        const container = document.getElementById('ads-input-container');
         
-        if(mode === 'cpc') {
-            label.innerText = "CPC Estimado (R$)";
-            if(input.value > 10) input.value = 0.11; // Reset se parece porcentagem
+        if(mode === 'none') {
+            container.classList.add('hidden');
         } else {
-            label.innerText = "Conversão Estimada (%)";
-            if(input.value < 1) input.value = 1.5; // Sugestão se for muito baixo
+            container.classList.remove('hidden');
+            if(mode === 'cpc') {
+                label.innerText = "CPC Estimado (R$)";
+                if(input.value > 10) input.value = 0.11; // Reset se parece porcentagem
+            } else {
+                label.innerText = "Conversão Estimada (%)";
+                if(input.value < 1) input.value = 1.5; // Sugestão se for muito baixo
+            }
         }
     }
 
+    // Trigger de Atualização Automática
+    const triggerUpdate = (source) => {
+        window.atualizarPrecificacao(source);
+        window.calcularGeral(false); // False = No Scroll
+    };
+
+    ['custo', 'extra', 'taxa-fixa', 'comissao', 'imposto', 'devolucao', 'desc-cupom', 'desc-relampago'].forEach(id => {
+        els[id].addEventListener('input', () => triggerUpdate('slider'));
+    });
+    margemSlider.addEventListener('input', () => triggerUpdate('slider'));
+    // Ads inputs only trigger general calc, not price
+    ['ads-input'].forEach(id => {
+         document.getElementById(id).addEventListener('input', () => window.calcularGeral(false));
+    });
+    // Price input manual trigger
+    els['preco-venda'].addEventListener('input', () => triggerUpdate('manual'));
+
+
     window.atualizarPrecificacao = function(origem) {
         const custo = getVal('custo');
+        const extra = getVal('extra');
         const fixo = getVal('taxa-fixa');
-        const taxasVariaveis = (getVal('comissao') + getVal('imposto')) / 100;
         
+        // Taxas Variaveis = Comissao + Imposto + Devolucao
+        const taxasVariaveis = (getVal('comissao') + getVal('imposto') + getVal('devolucao')) / 100;
+        
+        const custosFixosReais = custo + extra + fixo;
+
         if (custo === 0) return;
 
         if (origem === 'slider') {
             const margemDesejada = parseFloat(margemSlider.value) / 100;
             labelMargem.innerText = (margemDesejada * 100).toFixed(0) + "%";
             
-            const divisor = 1 - (taxasVariaveis + margemDesejada);
+            // Formula Reversa: Preço = (CustosFixos) / (1 - TaxasVariaveis - Margem)
+            const divisor = 1 - taxasVariaveis - margemDesejada;
+            
             if (divisor <= 0.05) { els['preco-venda'].value = 0; return; }
             
-            const precoFinalAlvo = (custo + fixo) / divisor;
+            const precoFinalAlvo = custosFixosReais / divisor;
+            
             const descCupom = getVal('desc-cupom') / 100;
             const descRelampago = getVal('desc-relampago') / 100;
             const fatorDescontos = (1 - descCupom) * (1 - descRelampago);
-            const precoBaseSugerido = precoFinalAlvo / fatorDescontos;
+            let precoBaseSugerido = precoFinalAlvo / fatorDescontos;
+            
+            // Arredondamento para .90
+            // Ex: 65.38 -> 65.90 | 65.92 -> 66.90
+            precoBaseSugerido = Math.ceil(precoBaseSugerido - 0.90) + 0.90;
             
             els['preco-venda'].value = precoBaseSugerido.toFixed(2);
         }
@@ -862,7 +917,7 @@
         precoFinalDisplay.innerText = "R$ " + precoFinal.toFixed(2);
         
         const custoTotalTaxas = precoFinal * taxasVariaveis;
-        const lucroLiquido = precoFinal - custo - fixo - custoTotalTaxas;
+        const lucroLiquido = precoFinal - custosFixosReais - custoTotalTaxas;
         
         lucroRealDisplay.innerText = "R$ " + lucroLiquido.toFixed(2);
         lucroRealDisplay.className = lucroLiquido < 0 ? "text-xl font-black text-red-600" : "text-xl font-black text-green-600";
@@ -873,47 +928,60 @@
         }
     };
 
-    ['custo', 'taxa-fixa', 'comissao', 'imposto', 'desc-cupom', 'desc-relampago'].forEach(id => {
-        els[id].addEventListener('input', () => window.atualizarPrecificacao('slider'));
-    });
-    margemSlider.addEventListener('input', () => window.atualizarPrecificacao('slider'));
-    els['preco-venda'].addEventListener('input', () => window.atualizarPrecificacao('manual'));
-
-    window.calcularGeral = function() {
+    window.calcularGeral = function(scroll = true) {
         const custo = getVal('custo');
+        const extra = getVal('extra');
         const fixo = getVal('taxa-fixa');
         const precoBase = getVal('preco-venda');
-        const taxasVariaveis = (getVal('comissao') + getVal('imposto')) / 100;
+        
+        const taxasVariaveis = (getVal('comissao') + getVal('imposto') + getVal('devolucao')) / 100;
+        
         const adsMode = document.getElementById('ads-mode').value;
         const adsInput = getVal('ads-input');
         const perfilAds = getVal('perfil-ads');
 
         const precoFinal = calcularPrecoFinal(precoBase);
         const custoTotalTaxas = precoFinal * taxasVariaveis;
-        const lucroUnit = precoFinal - custo - fixo - custoTotalTaxas;
+        const lucroUnit = precoFinal - (custo + extra + fixo) - custoTotalTaxas;
         
-        // CÁLCULO DE ADS
-        const cpaAlvo = Math.max(lucroUnit * 0.5, lucroUnit * perfilAds);
+        // --- 1. LÓGICA DE ADS (INVESTIMENTO) ---
+        let cpaAlvo = 0;
+        if(perfilAds == 0) {
+            // Perfil: Sem Ads (Orgânico)
+            cpaAlvo = 0;
+        } else {
+            // Perfil com Ads: Investe X% do Lucro
+            cpaAlvo = Math.max(lucroUnit * 0.5, lucroUnit * perfilAds);
+        }
         
+        // --- 2. LÓGICA DE MODO (CPC vs CONVERSÃO vs NENHUM) ---
         let displayMainVal = "";
         let displayMainLabel = "";
         let displayMainSub = "";
         
-        // Lógica BIFURCADA
-        if(adsMode === 'cpc') {
-            // Tenho CPC -> Achar Conversão Mínima
-            const cpc = adsInput;
+        if (perfilAds == 0) {
+            // Se está sem Ads, não faz sentido calcular CPC
+            displayMainLabel = "Estratégia Orgânica";
+            displayMainVal = "Sem Ads";
+            displayMainSub = "Foco em SEO e Conteúdo";
+            checkVereditoOrganic(lucroUnit);
+        }
+        else if (adsMode === 'cpc' || adsMode === 'none') {
+            // Modo CPC ou Modo Mínimo (Assume CPC 0.11)
+            const cpc = adsMode === 'none' ? 0.11 : adsInput;
+            
+            // Engenharia Reversa: Qual conversão paga esse CPC?
+            // CPA = CPC / Conv -> Conv = CPC / CPA
             const convMin = cpaAlvo > 0 ? (cpc / cpaAlvo) * 100 : 0;
             
             displayMainLabel = "Taxa de Conversão Mínima";
             displayMainVal = convMin.toFixed(2) + "%";
             displayMainSub = "Para manter CPC R$ " + cpc.toFixed(2);
             
-            // Veredito baseado na dificuldade da conversão
             checkVereditoConv(lucroUnit, convMin);
             
         } else {
-            // Tenho Conversão -> Achar CPC Teto
+            // Modo Conversão (Tenho taxa, quero saber CPC Teto)
             const conv = adsInput;
             const cpcMax = cpaAlvo * (conv / 100);
             
@@ -921,40 +989,61 @@
             displayMainVal = "R$ " + cpcMax.toFixed(2);
             displayMainSub = `Com conversão de ${conv}%`;
             
-            // Veredito baseado na viabilidade do CPC
             checkVereditoCPC(lucroUnit, cpcMax);
         }
 
-        // CÁLCULO DE ROAS
-        const roasBreakeven = lucroUnit > 0 ? (precoFinal / lucroUnit) : 0;
-        const roasIdeal = cpaAlvo > 0 ? (precoFinal / cpaAlvo) : 0;
-        const lucroPosAds = lucroUnit - cpaAlvo;
+        // --- 3. CÁLCULO DE MÉTRICAS (ROAS, ACOS, CPA) ---
+        // Se sem ads, ROAS/ACOS são infinitos ou N/A
+        const roasBreakeven = (lucroUnit > 0) ? (precoFinal / lucroUnit) : 0;
+        const roasIdeal = (cpaAlvo > 0) ? (precoFinal / cpaAlvo) : 0;
         
-        // CÁLCULO DE ACOS (O inverso do ROAS)
         const acosBreakeven = roasBreakeven > 0 ? (100 / roasBreakeven) : 0;
         const acosIdeal = roasIdeal > 0 ? (100 / roasIdeal) : 0;
+        
+        const lucroPosAds = lucroUnit - cpaAlvo;
 
+        // Atualiza Cards
         document.getElementById('res-cpa').innerText = "R$ " + cpaAlvo.toFixed(2);
         
         const elSobra = document.getElementById('res-cpa-restante');
         elSobra.innerText = "Sobra: R$ " + lucroPosAds.toFixed(2);
         elSobra.className = lucroPosAds >= 0 ? "block text-[10px] font-bold text-green-600 mt-1" : "block text-[10px] font-bold text-red-500 mt-1";
 
-        // Atualiza Card Dinâmico
         document.getElementById('lbl-res-secondary').innerText = displayMainLabel;
         document.getElementById('res-secondary-val').innerText = displayMainVal;
         document.getElementById('res-secondary-sub').innerText = displayMainSub;
 
+        // Formatação Condicional se "Sem Ads"
+        if(perfilAds == 0) {
+            document.getElementById('res-roas-ideal').innerText = "ROAS: -";
+            document.getElementById('res-acos-ideal').innerText = "ACOS: 0%";
+        } else {
+            document.getElementById('res-roas-ideal').innerText = "ROAS: " + roasIdeal.toFixed(2);
+            document.getElementById('res-acos-ideal').innerText = "ACOS: " + acosIdeal.toFixed(1) + "%";
+        }
+        
         document.getElementById('res-roas-breakeven').innerText = "ROAS: " + roasBreakeven.toFixed(2);
         document.getElementById('res-acos-breakeven').innerText = "ACOS: " + acosBreakeven.toFixed(1) + "%";
-        
-        document.getElementById('res-roas-ideal').innerText = "ROAS: " + roasIdeal.toFixed(2);
-        document.getElementById('res-acos-ideal').innerText = "ACOS: " + acosIdeal.toFixed(1) + "%";
 
-        renderizarProvaReal(precoBase, custo, fixo);
+        renderizarProvaReal(precoBase, custo, extra, fixo);
         document.getElementById('results-area').classList.remove('hidden');
-        document.getElementById('results-area').scrollIntoView({ behavior: 'smooth' });
+        if(scroll) {
+            document.getElementById('results-area').scrollIntoView({ behavior: 'smooth' });
+        }
     };
+    
+    function checkVereditoOrganic(lucroUnit) {
+        const vContainer = document.getElementById('veredito-container');
+        const vIcon = document.getElementById('veredito-icon');
+        const vTitulo = document.getElementById('veredito-titulo');
+        const vTexto = document.getElementById('veredito-texto');
+        
+        if (lucroUnit <= 0) {
+             setVeredito(vContainer, vIcon, vTitulo, vTexto, 'red', 'PREJUÍZO', 'Margem negativa mesmo sem anúncios.');
+        } else {
+             setVeredito(vContainer, vIcon, vTitulo, vTexto, 'green', 'LUCRO ORGÂNICO', 'Sem custos de publicidade descontados.');
+        }
+    }
     
     function checkVereditoConv(lucroUnit, convMin) {
         const vContainer = document.getElementById('veredito-container');
@@ -1005,11 +1094,12 @@
         txt.innerText = desc;
     }
 
-    function renderizarProvaReal(precoBase, custo, fixo) {
+    function renderizarProvaReal(precoBase, custo, extra, fixo) {
         const descCupom = getVal('desc-cupom');
         const descRelampago = getVal('desc-relampago');
         const comissao = getVal('comissao');
         const imposto = getVal('imposto');
+        const devolucao = getVal('devolucao');
 
         // Cálculos detalhados: 1º Oferta Relâmpago -> 2º Cupom Loja
         const valDescRelampago = precoBase * (descRelampago / 100);
@@ -1020,8 +1110,11 @@
 
         const valComissao = precoFinal * (comissao / 100);
         const valImposto = precoFinal * (imposto / 100);
+        
+        // Devolução calculada sobre o preço final
+        const valDevolucao = precoFinal * (devolucao / 100);
 
-        const custoTotal = custo + fixo + valComissao + valImposto;
+        const custoTotal = custo + extra + fixo + valComissao + valImposto + valDevolucao;
         const lucroFinal = precoFinal - custoTotal;
 
         const container = document.getElementById('breakdown-container');
@@ -1039,9 +1132,11 @@
             
             <div class="border-t border-dashed border-gray-300 my-2"></div>
             
-            ${row('(=) Receita Líquida (Base Taxas)', null, precoFinal, 'text-blue-800 font-bold')}
+            ${row('(=) Preço Venda (Nota Fiscal)', null, precoFinal, 'text-blue-800 font-bold')}
+            ${devolucao > 0 ? row('(-) Devolução Estimada', devolucao, -valDevolucao, 'text-red-500 font-bold') : ''}
             
             ${row('(-) Custo do Produto', null, -custo, 'text-red-400')}
+            ${row('(-) Custos Extras', null, -extra, 'text-red-400')}
             ${row('(-) Taxa Fixa Shopee', null, -fixo, 'text-red-400')}
             ${row('(-) Comissão Shopee', comissao, -valComissao, 'text-red-400')}
             ${row('(-) Impostos', imposto, -valImposto, 'text-red-400')}
