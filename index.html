@@ -24,6 +24,24 @@
         .table-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
         .table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         .table-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+
+        /* ESTILOS DE IMPRESSÃO (PDF) */
+        @media print {
+            body { background-color: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            #login-screen, button, .no-print, #tab-calc, #tab-dash, #auth-status-container { display: none !important; }
+            #app-content { box-shadow: none; max-width: 100%; width: 100%; margin: 0; }
+            .shopee-gradient { background: #ee4d2d !important; color: white !important; -webkit-print-color-adjust: exact; }
+            input, select { border: none !important; background: transparent !important; appearance: none; -webkit-appearance: none; padding-left: 0; font-weight: bold; color: #000; }
+            /* Ajustes para inputs numéricos */
+            input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+            /* Esconder ícones decorativos em inputs */
+            .fa-chevron-down, .absolute.left-3, .absolute.right-3 { display: none !important; }
+            /* Expandir áreas de scroll */
+            .table-scroll { overflow: visible; }
+            
+            /* Forçar quebras de página adequadas */
+            #results-area { page-break-inside: avoid; }
+        }
     </style>
 </head>
 <body class="text-gray-800 antialiased min-h-screen flex flex-col items-center justify-center py-4 md:py-8 px-4">
@@ -90,14 +108,20 @@
     <div id="app-content" class="hidden w-full max-w-4xl bg-white rounded-3xl overflow-hidden card-shadow transition-all duration-300">
         
         <!-- Header -->
-        <div class="shopee-gradient p-6 text-white text-center relative">
-            <div class="absolute top-5 right-5 opacity-40 cursor-pointer hover:opacity-100 transition-opacity" onclick="fazerLogout()" title="Sair da Conta"><i class="fas fa-sign-out-alt text-2xl"></i></div>
-            <h1 class="text-2xl font-extrabold tracking-tight">Velt.AI <span class="font-light opacity-90">| Cloud</span></h1>
-            <p class="text-xs font-medium uppercase tracking-widest mt-1 opacity-90">Precificação, Ads & Firebase</p>
+        <div class="shopee-gradient p-6 text-white text-center relative flex justify-between items-center">
+            <div class="w-8"></div> <!-- Spacer for center alignment -->
+            <div>
+                <h1 class="text-2xl font-extrabold tracking-tight">Velt.AI <span class="font-light opacity-90">| Cloud</span></h1>
+                <p class="text-xs font-medium uppercase tracking-widest mt-1 opacity-90">Precificação, Ads & Firebase</p>
+            </div>
+            <div class="flex gap-4">
+                <i class="fas fa-print cursor-pointer text-white text-xl opacity-80 hover:opacity-100 transition-opacity" onclick="window.print()" title="Imprimir / Salvar PDF"></i>
+                <i class="fas fa-sign-out-alt cursor-pointer text-white text-xl opacity-60 hover:opacity-100 transition-opacity no-print" onclick="fazerLogout()" title="Sair da Conta"></i>
+            </div>
         </div>
 
         <!-- Navegação Tabs -->
-        <div class="flex border-b border-gray-200 bg-white sticky top-0 z-10">
+        <div class="flex border-b border-gray-200 bg-white sticky top-0 z-10 no-print">
             <button id="tab-calc" onclick="switchTab('calc')" class="flex-1 py-4 text-xs font-bold text-orange-600 border-b-2 border-orange-500 bg-orange-50 uppercase tracking-wide transition-colors">
                 <i class="fas fa-calculator mr-1"></i> Calculadora
             </button>
@@ -110,10 +134,10 @@
         <div id="view-calc" class="p-6 md:p-8 space-y-8 animate-fade-in">
 
             <!-- GESTÃO DE PRODUTOS -->
-            <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 md:p-5 relative">
+            <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 md:p-5 relative no-print">
                 <div class="absolute -top-3 left-4 bg-gray-800 text-white text-[10px] font-bold px-2 py-0.5 rounded">GESTÃO DE PRODUTOS</div>
                 
-                <div class="flex justify-between items-center mb-3">
+                <div class="flex justify-between items-center mb-3" id="auth-status-container">
                     <div id="db-mode" class="text-[9px] font-bold uppercase text-gray-400">Projeto Pessoal</div>
                     <div class="text-[10px] text-right text-gray-400 flex items-center gap-2">
                         <span id="auth-status">Conectado</span>
@@ -216,7 +240,7 @@
                     </div>
                 </div>
 
-                <div class="bg-blue-50 p-5 rounded-xl border border-blue-100 relative mt-6">
+                <div class="bg-blue-50 p-5 rounded-xl border border-blue-100 relative mt-6 no-print">
                     <div class="absolute -top-3 left-4 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">Definir Margem no Preço Final</div>
                     <div class="flex justify-between items-center mb-4 mt-2">
                         <span class="text-xs font-bold text-blue-800">Margem Líquida Alvo</span>
@@ -242,7 +266,7 @@
             </div>
 
             <!-- 2. ADS ESTRATÉGIA -->
-            <div class="space-y-4">
+            <div class="space-y-4 no-print">
                 <div class="flex items-center gap-2 mb-2 border-b border-gray-100 pb-2">
                     <div class="bg-orange-100 p-1.5 rounded-lg text-orange-600"><i class="fas fa-bullseye text-sm"></i></div>
                     <h2 class="text-sm font-bold text-gray-700 uppercase">2. Estratégia de Ads</h2>
@@ -267,14 +291,25 @@
                     
                     <!-- Perfil -->
                     <div class="col-span-2 space-y-1">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Perfil</label>
-                        <select id="perfil-ads" onchange="calcularGeral(false)" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Perfil de Investimento</label>
+                        <select id="perfil-ads" onchange="toggleAdsProfile(); calcularGeral(false)" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
                             <option value="0.5" selected>⚖️ Equilibrado (Min 50% Lucro)</option>
                             <option value="0.75">🚀 Agressivo (75% Lucro)</option>
                             <option value="0.95">👑 Dominação (95% Lucro)</option>
                             <option value="0">🌱 Sem Ads (100% Lucro)</option>
+                            <option value="custom">🎯 Definir CPA Máximo (R$)</option>
                         </select>
                     </div>
+
+                    <!-- Novo Campo CPA Custom -->
+                    <div id="custom-cpa-container" class="hidden col-span-2 space-y-1 bg-yellow-50 p-2 rounded-lg border border-yellow-200">
+                        <label class="text-[10px] font-bold text-yellow-700 uppercase tracking-wide">Quanto quer gastar por venda? (R$)</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2 text-yellow-600 text-xs font-bold">R$</span>
+                            <input type="number" id="custom-cpa" value="10.00" step="0.50" class="w-full pl-8 pr-3 py-2 bg-white border border-yellow-300 rounded-lg text-sm font-bold text-yellow-900 focus:outline-none">
+                        </div>
+                    </div>
+
                 </div>
 
                 <button onclick="calcularGeral(true)" class="w-full py-4 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:bg-gray-800 transform active:scale-95 transition-all flex justify-center items-center gap-2 mt-4">
@@ -360,7 +395,7 @@
             </div>
         </div>
         
-        <div class="bg-gray-50 px-6 py-4 text-center border-t border-gray-100">
+        <div class="bg-gray-50 px-6 py-4 text-center border-t border-gray-100 no-print">
             <p class="text-[10px] text-gray-400">© 2024 Velt.AI | CPC Mínimo Shopee: R$ 0,11.</p>
         </div>
 
@@ -615,6 +650,7 @@
             adsMode: document.getElementById('ads-mode').value,
             adsInput: document.getElementById('ads-input').value,
             perfilAds: document.getElementById('perfil-ads').value,
+            customCpa: document.getElementById('custom-cpa').value, // NEW
             updatedAt: new Date().toISOString()
         };
 
@@ -670,7 +706,7 @@
         document.getElementById('btn-delete').classList.remove('hidden');
         document.getElementById('btn-save-text').innerText = "Atualizar";
         
-        // Retrocompatibilidade para campos antigos (cpcEst)
+        // Retrocompatibilidade
         let loadedAdsInput = data.adsInput;
         if(loadedAdsInput === undefined || loadedAdsInput === null) {
              loadedAdsInput = data.cpcEst || 0.11;
@@ -689,7 +725,8 @@
             'preco-venda': data.precoVenda, 
             'ads-mode': data.adsMode || 'cpc',
             'ads-input': loadedAdsInput,
-            'perfil-ads': data.perfilAds
+            'perfil-ads': data.perfilAds,
+            'custom-cpa': data.customCpa || 10.00
         };
 
         for (const [key, val] of Object.entries(fields)) {
@@ -698,6 +735,7 @@
         }
         
         window.toggleAdsMode();
+        window.toggleAdsProfile();
         
         // CORREÇÃO CRÍTICA: Use 'manual' para preservar o preço carregado
         window.atualizarPrecificacao('manual'); 
@@ -821,7 +859,7 @@
 
 <script>
     // Lógica de Negócio (Global)
-    const ids = ['custo', 'extra', 'taxa-fixa', 'comissao', 'imposto', 'devolucao', 'desc-cupom', 'desc-relampago', 'preco-venda', 'ads-input', 'perfil-ads'];
+    const ids = ['custo', 'extra', 'taxa-fixa', 'comissao', 'imposto', 'devolucao', 'desc-cupom', 'desc-relampago', 'preco-venda', 'ads-input', 'perfil-ads', 'custom-cpa'];
     const els = {};
     ids.forEach(id => els[id] = document.getElementById(id));
     const margemSlider = document.getElementById('margem-slider');
@@ -858,6 +896,17 @@
             }
         }
     }
+    
+    window.toggleAdsProfile = function() {
+        const perfil = document.getElementById('perfil-ads').value;
+        const customContainer = document.getElementById('custom-cpa-container');
+        
+        if(perfil === 'custom') {
+            customContainer.classList.remove('hidden');
+        } else {
+            customContainer.classList.add('hidden');
+        }
+    }
 
     // Trigger de Atualização Automática
     const triggerUpdate = (source) => {
@@ -870,7 +919,7 @@
     });
     margemSlider.addEventListener('input', () => triggerUpdate('slider'));
     // Ads inputs only trigger general calc, not price
-    ['ads-input'].forEach(id => {
+    ['ads-input', 'custom-cpa'].forEach(id => {
          document.getElementById(id).addEventListener('input', () => window.calcularGeral(false));
     });
     // Price input manual trigger
@@ -938,7 +987,7 @@
         
         const adsMode = document.getElementById('ads-mode').value;
         const adsInput = getVal('ads-input');
-        const perfilAds = getVal('perfil-ads');
+        const perfilAds = document.getElementById('perfil-ads').value; // String check for 'custom'
 
         const precoFinal = calcularPrecoFinal(precoBase);
         const custoTotalTaxas = precoFinal * taxasVariaveis;
@@ -946,12 +995,13 @@
         
         // --- 1. LÓGICA DE ADS (INVESTIMENTO) ---
         let cpaAlvo = 0;
-        if(perfilAds == 0) {
-            // Perfil: Sem Ads (Orgânico)
-            cpaAlvo = 0;
+        if (perfilAds === 'custom') {
+            cpaAlvo = getVal('custom-cpa');
+        } else if (perfilAds == 0) {
+            cpaAlvo = 0; // Orgânico
         } else {
             // Perfil com Ads: Investe X% do Lucro
-            cpaAlvo = Math.max(lucroUnit * 0.5, lucroUnit * perfilAds);
+            cpaAlvo = Math.max(lucroUnit * 0.5, lucroUnit * parseFloat(perfilAds));
         }
         
         // --- 2. LÓGICA DE MODO (CPC vs CONVERSÃO vs NENHUM) ---
