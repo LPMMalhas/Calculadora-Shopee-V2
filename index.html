@@ -25,11 +25,11 @@
         .table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         .table-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
 
-        /* ESTILOS DE IMPRESSÃO (PDF) */
+        /* ESTILOS DE IMPRESSÃO (PDF - OTIMIZADO A4) */
         @media print {
             @page { margin: 0.5cm; size: A4; }
             body { background-color: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-size: 9px; }
-            #login-screen, button, .no-print, #tab-calc, #tab-dash, #tab-ads, #auth-status-container, #firebase-help, .fa-print, .fa-sign-out-alt, input[type=range], #btn-delete, #btn-save, .fa-plus, .fa-save, .fa-trash-alt, #ads-saved-products, .fa-chevron-down, .action-bar { display: none !important; }
+            #login-screen, button, .no-print, #tab-calc, #tab-dash, #tab-ads, #auth-status-container, #firebase-help, .fa-print, .fa-sign-out-alt, input[type=range], #btn-delete, #btn-save, .fa-plus, .fa-save, .fa-trash-alt, #ads-saved-products, .fa-chevron-down, .action-bar, #dash-search-container { display: none !important; }
             #app-content { box-shadow: none; max-width: 100%; width: 100%; margin: 0; border-radius: 0; transform: scale(0.95); transform-origin: top center; }
             .shopee-gradient { background: #ee4d2d !important; color: white !important; -webkit-print-color-adjust: exact; padding: 10px !important; border-radius: 0 !important; margin-bottom: 5px !important; }
             .p-6, .p-8, .md\:p-8, .p-5, .p-4 { padding: 4px !important; }
@@ -338,7 +338,7 @@
                         <span id="res-cpa" class="text-xl font-black text-purple-700">R$ 0,00</span>
                         <span id="res-cpa-restante" class="block text-[10px] font-bold text-gray-400 mt-1">Sobra: R$ 0,00</span>
                     </div>
-                    <!-- CARD DINÂMICO -->
+                    <!-- CARD DINÂMICO (CPC MÁX ou CONVERSÃO MÍN) -->
                     <div class="bg-orange-50 p-3 rounded-xl border border-orange-200 shadow-sm text-center">
                         <span id="lbl-res-secondary" class="block text-[10px] uppercase font-bold text-orange-600 mb-1">Taxa de Conversão Mínima</span>
                         <span id="res-secondary-val" class="text-2xl font-black text-orange-600">0.00%</span>
@@ -477,6 +477,15 @@
         <!-- ABA DASHBOARD -->
         <div id="view-dash" class="hidden p-6 md:p-8 animate-fade-in">
             <div class="flex items-center justify-between mb-4"><h3 class="font-bold text-lg text-gray-700">Portfólio de Produtos</h3><span class="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-full font-mono" id="dash-count">0 produtos</span></div>
+            
+            <!-- Search Box -->
+            <div class="mb-4 relative" id="dash-search-container">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" id="dash-search" placeholder="Buscar produto..." class="w-full py-2 pl-10 pr-4 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-700 outline-none focus:border-orange-500 transition-all" oninput="updateDashboardTable()">
+            </div>
+
             <div class="overflow-x-auto table-scroll">
                 <table class="w-full text-left border-collapse">
                     <thead><tr class="text-[10px] uppercase text-gray-400 border-b border-gray-200"><th class="py-2 pl-2">Produto</th><th class="py-2">Preço</th><th class="py-2">Custo</th><th class="py-2">Lucro</th><th class="py-2 text-center">Margem</th><th class="py-2 pr-2 text-right"></th></tr></thead>
@@ -653,6 +662,24 @@
             e.target.value = formatted;
         }
     });
+    
+    // Search listener logic added here to ensure correct scope and execution
+    const dashSearchInput = document.getElementById('dash-search');
+    if(dashSearchInput) {
+        dashSearchInput.addEventListener('input', (e) => {
+            let val = e.target.value;
+            if(val.length > 0) {
+                const firstLetter = val.charAt(0).toUpperCase();
+                const rest = val.slice(1);
+                const formatted = (firstLetter + rest).replace(/\s+/g, '_');
+                
+                if (e.target.value !== formatted) {
+                    e.target.value = formatted;
+                }
+            }
+            window.updateDashboardTable();
+        });
+    }
 
     window.novoProduto = () => {
         document.getElementById('prod-id').value = "";
@@ -744,22 +771,13 @@
         let loadedAdsInput = data.adsInput;
         if(loadedAdsInput === undefined || loadedAdsInput === null) loadedAdsInput = data.cpcEst || 0.11;
 
-        // Mapeamento corrigido para garantir que nomes antigos ou novos funcionem
         const fields = {
-            'custo': data.custo, 
-            'extra': data.extra, 
-            'taxa-fixa': data.taxaFixa || data['taxa-fixa'], 
-            'comissao': data.comissao, 
-            'imposto': data.imposto, 
-            'devolucao': data.devolucao,
-            'desc-cupom': data.descCupom || data['desc-cupom'], 
-            'desc-relampago': data.descRelampago || data['desc-relampago'],
-            'margem-slider': data.margem, 
-            'preco-venda': data.precoVenda || data['preco-venda'], 
-            'ads-mode': data.adsMode || 'cpc', 
-            'ads-input': loadedAdsInput,
-            'perfil-ads': data.perfilAds, 
-            'custom-cpa': data.customCpa || 10.00
+            'custo': data.custo, 'extra': data.extra, 'taxa-fixa': data.taxaFixa, 
+            'comissao': data.comissao, 'imposto': data.imposto, 'devolucao': data.devolucao,
+            'desc-cupom': data.descCupom, 'desc-relampago': data.descRelampago,
+            'margem-slider': data.margem, 'preco-venda': data.precoVenda, 
+            'ads-mode': data.adsMode || 'cpc', 'ads-input': loadedAdsInput,
+            'perfil-ads': data.perfilAds, 'custom-cpa': data.customCpa || 10.00
         };
 
         for (const [key, val] of Object.entries(fields)) {
@@ -767,14 +785,12 @@
             if(el) el.value = val !== undefined ? val : (key === 'extra' || key === 'devolucao' ? 0 : el.value);
         }
         
-        // Força atualização visual dos labels
         if(data.margem) {
              document.getElementById('label-margem').innerText = data.margem + "%";
         }
         
         window.toggleAdsMode();
         window.toggleAdsProfile();
-        // Usa 'manual' para preservar o preço carregado sem recalcular pelo slider
         window.atualizarPrecificacao('manual'); 
         window.calcularGeral(false);
     };
@@ -835,10 +851,24 @@
 
     window.updateDashboardTable = () => {
         const tbody = document.getElementById('dash-tbody');
-        const ids = Object.keys(window.productsCache);
+        const searchInput = document.getElementById('dash-search');
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
+        
+        let ids = Object.keys(window.productsCache);
+        
+        if (searchTerm) {
+            ids = ids.filter(id => {
+                const p = window.productsCache[id];
+                return p.name.toLowerCase().includes(searchTerm);
+            });
+        }
+
         document.getElementById('dash-count').innerText = `${ids.length} produtos`;
 
-        if(ids.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">Vazio.</td></tr>'; return; }
+        if(ids.length === 0) { 
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">' + (searchTerm ? 'Nenhum produto encontrado.' : 'Vazio.') + '</td></tr>'; 
+            return; 
+        }
 
         let html = '';
         ids.forEach(id => {
@@ -1164,7 +1194,6 @@
 
             compBody.innerHTML = rows;
 
-            // DIAGNÓSTICO TEXTUAL (Especialista em Shopee)
             let diagnosis = "";
             if (cpa > targetCpa) {
                 diagnosis = `<strong class="text-red-700">🔴 ANÁLISE TÉCNICA: CAMPANHA INEFICIENTE</strong><br>`;
