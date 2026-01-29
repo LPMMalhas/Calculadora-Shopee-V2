@@ -39,7 +39,7 @@
             /* Ocultar elementos de navegação e interação */
             #login-screen, button, .no-print, #tab-calc, #tab-dash, #tab-ads,
             #auth-status-container, #firebase-help, .fa-print, .fa-sign-out-alt, 
-            input[type=range], #btn-delete, #btn-save, .fa-plus, .fa-save, .fa-trash-alt,
+            input[type=range], #btn-delete, #btn-save, .fa-plus, .fa-save, .fa-trash-alt, .fa-eraser,
             #ads-saved-products, .fa-chevron-down, .action-bar, #dash-search-container { 
                 display: none !important; 
             }
@@ -155,7 +155,7 @@
         
         <!-- Header -->
         <div class="shopee-gradient p-6 text-white text-center relative flex justify-between items-center">
-            <div class="w-8"></div> <!-- Spacer for center alignment -->
+            <div class="w-8"></div>
             <div>
                 <h1 class="text-2xl font-extrabold tracking-tight">Velt.AI <span class="font-light opacity-90">| Cloud</span></h1>
                 <p class="text-xs font-medium uppercase tracking-widest mt-1 opacity-90">Precificação, Ads & Firebase</p>
@@ -223,14 +223,19 @@
                     </button>
                 </div>
 
-                <div class="flex justify-end gap-3 mt-4 pt-3 border-t border-gray-200 no-print">
-                    <button onclick="exportarBackup()" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 uppercase">
-                        <i class="fas fa-download"></i> Exportar Backup
+                <div class="flex justify-between items-center mt-4 pt-3 border-t border-gray-200 no-print action-bar">
+                    <button onclick="limparCalculadora()" class="text-[10px] font-bold text-red-500 hover:text-red-700 flex items-center gap-1 uppercase transition-all">
+                        <i class="fas fa-eraser mr-1"></i> Limpar Tudo
                     </button>
-                    <label class="text-[10px] font-bold text-green-600 hover:text-green-800 flex items-center gap-1 uppercase cursor-pointer">
-                        <i class="fas fa-upload"></i> Importar Backup
-                        <input type="file" id="import-file-calc" class="hidden" onchange="importarBackup(this)">
-                    </label>
+                    <div class="flex gap-3">
+                        <button onclick="exportarBackup()" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 uppercase">
+                            <i class="fas fa-download"></i> Exportar
+                        </button>
+                        <label class="text-[10px] font-bold text-green-600 hover:text-green-800 flex items-center gap-1 uppercase cursor-pointer">
+                            <i class="fas fa-upload"></i> Importar
+                            <input type="file" id="import-file-calc" class="hidden" onchange="importarBackup(this)">
+                        </label>
+                    </div>
                 </div>
             </div>
             
@@ -386,7 +391,7 @@
                         <span id="res-cpa" class="text-xl font-black text-purple-700">R$ 0,00</span>
                         <span id="res-cpa-restante" class="block text-[10px] font-bold text-gray-400 mt-1">Sobra: R$ 0,00</span>
                     </div>
-                    <!-- CARD DINÂMICO -->
+                    <!-- CARD DINÂMICO (CPC MÁX ou CONVERSÃO MÍN) -->
                     <div class="bg-orange-50 p-3 rounded-xl border border-orange-200 shadow-sm text-center">
                         <span id="lbl-res-secondary" class="block text-[10px] uppercase font-bold text-orange-600 mb-1">Taxa de Conversão Mínima</span>
                         <span id="res-secondary-val" class="text-2xl font-black text-orange-600">0.00%</span>
@@ -595,6 +600,11 @@
         if (el) el.innerText = text;
     };
 
+    // Variáveis Globais de Elementos (Definidas no topo para garantir acesso)
+    // Elas serão reatribuídas dentro das funções para garantir que peguem o DOM atualizado
+    // mas a declaração aqui previne ReferenceError em casos extremos
+    let margemSlider = null;
+
     // 2. AUTH SYSTEM
     const initAuth = async () => {};
     initAuth();
@@ -716,18 +726,27 @@
         }
     });
 
+    // Funções de manipulação de produto
     window.novoProduto = () => {
-        document.getElementById('prod-id').value = "";
-        document.getElementById('prod-name').value = "";
-        document.getElementById('saved-products').value = "";
-        document.getElementById('badge-mode').innerText = "NOVO";
-        document.getElementById('badge-mode').className = "bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold text-[9px]";
-        document.getElementById('btn-save-text').innerText = "Salvar";
-        document.getElementById('btn-delete').classList.add('hidden');
-        document.getElementById('custo').value = "";
-        document.getElementById('preco-venda').value = "";
-        document.getElementById('extra').value = "0.00";
-        document.getElementById('devolucao').value = "0";
+        const ids = ['prod-id', 'prod-name', 'saved-products', 'custo', 'preco-venda', 'extra', 'devolucao'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.value = (id === 'extra' || id === 'devolucao' ? "0.00" : "");
+        });
+
+        // Reset badge
+        const badge = document.getElementById('badge-mode');
+        if(badge) {
+            badge.innerText = "NOVO";
+            badge.className = "bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold text-[9px]";
+        }
+        
+        const btnSaveText = document.getElementById('btn-save-text');
+        if(btnSaveText) btnSaveText.innerText = "Salvar";
+        
+        const btnDelete = document.getElementById('btn-delete');
+        if(btnDelete) btnDelete.classList.add('hidden');
+        
         window.atualizarPrecificacao('slider');
     };
 
@@ -826,9 +845,51 @@
         
         window.toggleAdsMode();
         window.toggleAdsProfile();
+        // Use 'manual' para preservar o preço carregado sem recalcular pelo slider
         window.atualizarPrecificacao('manual'); 
         window.calcularGeral(false);
     };
+
+    window.limparCalculadora = () => {
+        if(!confirm("Tem certeza que deseja limpar todos os campos da calculadora?")) return;
+        
+        // Usar função segura que busca elementos atuais
+        const inputsToClear = ['custo', 'extra', 'taxa-fixa', 'comissao', 'imposto', 'desc-relampago', 'desc-cupom', 'devolucao', 'preco-venda', 'ads-input', 'custom-cpa', 'prod-name', 'prod-id'];
+        inputsToClear.forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.value = "";
+        });
+        
+        const slider = document.getElementById('margem-slider');
+        if(slider) slider.value = 15;
+        
+        const perfil = document.getElementById('perfil-ads');
+        if(perfil) perfil.selectedIndex = 0;
+        
+        const adsMode = document.getElementById('ads-mode');
+        if(adsMode) adsMode.value = 'cpc';
+        
+        const saved = document.getElementById('saved-products');
+        if(saved) saved.value = "";
+        
+        // Reset state UI
+        const badge = document.getElementById('badge-mode');
+        if(badge) {
+            badge.innerText = "NOVO";
+            badge.className = "bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold text-[9px]";
+        }
+        
+        const btnSaveText = document.getElementById('btn-save-text');
+        if(btnSaveText) btnSaveText.innerText = "Salvar";
+        
+        const btnDelete = document.getElementById('btn-delete');
+        if(btnDelete) btnDelete.classList.add('hidden');
+        
+        window.toggleAdsMode();
+        window.toggleAdsProfile();
+        window.atualizarPrecificacao('slider');
+        window.calcularGeral(false);
+    }
 
     window.exportarBackup = () => {
         if (Object.keys(window.productsCache).length === 0) return alert("Nenhum produto.");
@@ -945,7 +1006,11 @@
     const els = {};
     const ids = ['custo', 'extra', 'taxa-fixa', 'comissao', 'imposto', 'devolucao', 'desc-cupom', 'desc-relampago', 'preco-venda', 'ads-input', 'perfil-ads', 'custom-cpa', 'camp-impressions', 'camp-clicks', 'camp-expense', 'camp-gmv', 'camp-conversions', 'camp-items'];
     ids.forEach(id => els[id] = document.getElementById(id));
-    const margemSlider = document.getElementById('margem-slider');
+    
+    // Obter o slider no momento do uso para evitar erro de referência
+    function getMargemSlider() {
+        return document.getElementById('margem-slider');
+    }
     
     function calcularPrecoFinal(precoBase) {
         const descCupom = window.getVal('desc-cupom') / 100;
@@ -969,16 +1034,30 @@
     }
 
     const triggerUpdate = (source) => { window.atualizarPrecificacao(source); window.calcularGeral(false); };
-    ['custo', 'extra', 'taxa-fixa', 'comissao', 'imposto', 'devolucao', 'desc-cupom', 'desc-relampago'].forEach(id => els[id].addEventListener('input', () => triggerUpdate('slider')));
-    margemSlider.addEventListener('input', () => triggerUpdate('slider'));
-    ['ads-input', 'custom-cpa'].forEach(id => document.getElementById(id).addEventListener('input', () => window.calcularGeral(false)));
-    els['preco-venda'].addEventListener('input', () => triggerUpdate('manual'));
+    ['custo', 'extra', 'taxa-fixa', 'comissao', 'imposto', 'devolucao', 'desc-cupom', 'desc-relampago'].forEach(id => {
+         const el = document.getElementById(id);
+         if(el) el.addEventListener('input', () => triggerUpdate('slider'));
+    });
+    
+    const sliderEl = document.getElementById('margem-slider');
+    if(sliderEl) sliderEl.addEventListener('input', () => triggerUpdate('slider'));
+
+    ['ads-input', 'custom-cpa'].forEach(id => {
+         const el = document.getElementById(id);
+         if(el) el.addEventListener('input', () => window.calcularGeral(false));
+    });
+    
+    const pvEl = document.getElementById('preco-venda');
+    if(pvEl) pvEl.addEventListener('input', () => triggerUpdate('manual'));
 
 
     window.atualizarPrecificacao = function(origem) {
         // 1. Update UI Label immediately
-        if (origem === 'slider') {
-             document.getElementById('label-margem').innerText = margemSlider.value + "%";
+        const slider = getMargemSlider();
+        
+        if (origem === 'slider' && slider) {
+             const label = document.getElementById('label-margem');
+             if(label) label.innerText = slider.value + "%";
         }
         
         const custo = window.getVal('custo');
@@ -989,17 +1068,24 @@
 
         if (custo === 0) return;
 
-        if (origem === 'slider') {
-            const margemDesejada = parseFloat(margemSlider.value) / 100;
+        if (origem === 'slider' && slider) {
+            const margemDesejada = parseFloat(slider.value) / 100;
             const divisor = 1 - taxasVariaveis - margemDesejada;
-            if (divisor <= 0.05) { els['preco-venda'].value = 0; return; }
+            const pvInput = document.getElementById('preco-venda');
+            
+            if (divisor <= 0.05) { 
+                if(pvInput) pvInput.value = 0; 
+                return; 
+            }
+            
             const precoFinalAlvo = custosFixosReais / divisor;
             const descCupom = window.getVal('desc-cupom') / 100;
             const descRelampago = window.getVal('desc-relampago') / 100;
             const fatorDescontos = (1 - descCupom) * (1 - descRelampago);
             let precoBaseSugerido = precoFinalAlvo / fatorDescontos;
             precoBaseSugerido = Math.ceil(precoBaseSugerido - 0.90) + 0.90;
-            els['preco-venda'].value = precoBaseSugerido.toFixed(2);
+            
+            if(pvInput) pvInput.value = precoBaseSugerido.toFixed(2);
         }
 
         const precoBase = window.getVal('preco-venda');
