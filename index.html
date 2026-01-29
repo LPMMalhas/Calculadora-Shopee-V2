@@ -27,20 +27,68 @@
 
         /* ESTILOS DE IMPRESSÃO (PDF - OTIMIZADO A4) */
         @media print {
-            @page { margin: 0.5cm; size: A4; }
-            body { background-color: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-size: 9px; }
-            #login-screen, button, .no-print, #tab-calc, #tab-dash, #tab-ads, #auth-status-container, #firebase-help, .fa-print, .fa-sign-out-alt, input[type=range], #btn-delete, #btn-save, .fa-plus, .fa-save, .fa-trash-alt, #ads-saved-products, .fa-chevron-down, .action-bar, #dash-search-container { display: none !important; }
-            #app-content { box-shadow: none; max-width: 100%; width: 100%; margin: 0; border-radius: 0; transform: scale(0.95); transform-origin: top center; }
-            .shopee-gradient { background: #ee4d2d !important; color: white !important; -webkit-print-color-adjust: exact; padding: 10px !important; border-radius: 0 !important; margin-bottom: 5px !important; }
-            .p-6, .p-8, .md\:p-8, .p-5, .p-4 { padding: 4px !important; }
-            .space-y-8 > :not([hidden]) ~ :not([hidden]) { margin-top: 6px !important; }
+            @page { margin: 0.3cm; size: A4; }
+            
+            body { 
+                background-color: white; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact;
+                font-size: 9px; 
+            }
+
+            /* Ocultar elementos de navegação e interação */
+            #login-screen, button, .no-print, #tab-calc, #tab-dash, #tab-ads,
+            #auth-status-container, #firebase-help, .fa-print, .fa-sign-out-alt, 
+            input[type=range], #btn-delete, #btn-save, .fa-plus, .fa-save, .fa-trash-alt,
+            #ads-saved-products, .fa-chevron-down, .action-bar, #dash-search-container { 
+                display: none !important; 
+            }
+
+            #app-content { 
+                box-shadow: none; max-width: 100%; width: 100%; margin: 0; border-radius: 0;
+                transform: scale(0.85); /* Redução maior para garantir fit */
+                transform-origin: top center;
+                overflow: visible;
+            }
+
+            .shopee-gradient { 
+                background: #ee4d2d !important; color: white !important; 
+                -webkit-print-color-adjust: exact; padding: 8px !important;
+                border-radius: 0 !important; margin-bottom: 5px !important;
+            }
+            .shopee-gradient h1 { font-size: 14px !important; }
+            .shopee-gradient p { font-size: 8px !important; }
+
+            /* Compactação Extrema de Espaçamentos */
+            .p-6, .p-8, .md\:p-8 { padding: 0 !important; }
+            .p-5, .p-4 { padding: 4px !important; }
+            
+            .space-y-8 > :not([hidden]) ~ :not([hidden]) { margin-top: 8px !important; }
             .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 4px !important; }
             .mb-8, .mb-4, .mb-3, .mb-2 { margin-bottom: 2px !important; }
-            .gap-4 { gap: 6px !important; }
-            input, select { border: none !important; background: transparent !important; appearance: none; -webkit-appearance: none; padding: 0 !important; font-weight: bold; color: #000; font-size: 10px !important; height: auto !important; width: auto !important; display: inline-block; }
-            .bg-gray-50, .bg-blue-50, .bg-red-50, .bg-green-50, .bg-orange-50, .bg-purple-50 { background-color: transparent !important; border: 1px solid #e5e7eb !important; border-radius: 4px !important; padding: 4px !important; }
-            #results-area, #camp-results, .grid { page-break-inside: avoid; }
+            .mt-6, .mt-5, .mt-4 { margin-top: 4px !important; }
+            .gap-4 { gap: 4px !important; }
+            .gap-3 { gap: 3px !important; }
+            
+            input, select { 
+                border: none !important; background: transparent !important; 
+                appearance: none; -webkit-appearance: none; padding: 0 !important; 
+                font-weight: bold; color: #000; font-size: 10px !important;
+                height: auto !important; width: auto !important; display: inline-block;
+            }
+
+            .bg-gray-50, .bg-blue-50, .bg-red-50, .bg-green-50, .bg-orange-50, .bg-purple-50 {
+                background-color: transparent !important;
+                border: 1px solid #e5e7eb !important; border-radius: 4px !important;
+                padding: 4px !important;
+            }
+            
+            /* Garante quebras de página corretas */
+            #results-area, #camp-results, .grid, .rounded-2xl { page-break-inside: avoid; }
+            
+            /* Ocultar explicitamente abas não ativas na impressão */
             .hidden { display: none !important; } 
+            
             .fa-chevron-down, .absolute.left-3, .absolute.right-3 { display: none !important; }
             input[type=number] { padding-left: 0 !important; }
         }
@@ -177,10 +225,10 @@
 
                 <div class="flex justify-end gap-3 mt-4 pt-3 border-t border-gray-200 no-print">
                     <button onclick="exportarBackup()" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 uppercase">
-                        <i class="fas fa-download"></i> Exportar
+                        <i class="fas fa-download"></i> Exportar Backup
                     </button>
                     <label class="text-[10px] font-bold text-green-600 hover:text-green-800 flex items-center gap-1 uppercase cursor-pointer">
-                        <i class="fas fa-upload"></i> Importar
+                        <i class="fas fa-upload"></i> Importar Backup
                         <input type="file" id="import-file-calc" class="hidden" onchange="importarBackup(this)">
                     </label>
                 </div>
@@ -662,24 +710,6 @@
             e.target.value = formatted;
         }
     });
-    
-    // Search listener logic added here to ensure correct scope and execution
-    const dashSearchInput = document.getElementById('dash-search');
-    if(dashSearchInput) {
-        dashSearchInput.addEventListener('input', (e) => {
-            let val = e.target.value;
-            if(val.length > 0) {
-                const firstLetter = val.charAt(0).toUpperCase();
-                const rest = val.slice(1);
-                const formatted = (firstLetter + rest).replace(/\s+/g, '_');
-                
-                if (e.target.value !== formatted) {
-                    e.target.value = formatted;
-                }
-            }
-            window.updateDashboardTable();
-        });
-    }
 
     window.novoProduto = () => {
         document.getElementById('prod-id').value = "";
@@ -772,12 +802,20 @@
         if(loadedAdsInput === undefined || loadedAdsInput === null) loadedAdsInput = data.cpcEst || 0.11;
 
         const fields = {
-            'custo': data.custo, 'extra': data.extra, 'taxa-fixa': data.taxaFixa, 
-            'comissao': data.comissao, 'imposto': data.imposto, 'devolucao': data.devolucao,
-            'desc-cupom': data.descCupom, 'desc-relampago': data.descRelampago,
-            'margem-slider': data.margem, 'preco-venda': data.precoVenda, 
-            'ads-mode': data.adsMode || 'cpc', 'ads-input': loadedAdsInput,
-            'perfil-ads': data.perfilAds, 'custom-cpa': data.customCpa || 10.00
+            'custo': data.custo, 
+            'extra': data.extra, 
+            'taxa-fixa': data.taxaFixa, 
+            'comissao': data.comissao, 
+            'imposto': data.imposto, 
+            'devolucao': data.devolucao,
+            'desc-cupom': data.descCupom, 
+            'desc-relampago': data.descRelampago,
+            'margem-slider': data.margem, 
+            'preco-venda': data.precoVenda, 
+            'ads-mode': data.adsMode || 'cpc', 
+            'ads-input': loadedAdsInput,
+            'perfil-ads': data.perfilAds, 
+            'custom-cpa': data.customCpa || 10.00
         };
 
         for (const [key, val] of Object.entries(fields)) {
@@ -791,6 +829,7 @@
         
         window.toggleAdsMode();
         window.toggleAdsProfile();
+        // Use 'manual' para preservar o preço carregado sem recalcular pelo slider
         window.atualizarPrecificacao('manual'); 
         window.calcularGeral(false);
     };
