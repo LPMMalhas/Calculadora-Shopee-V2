@@ -27,7 +27,7 @@
 
         /* ESTILOS DE IMPRESSÃO (PDF - OTIMIZADO A4) */
         @media print {
-            @page { margin: 0.5cm; size: A4; }
+            @page { margin: 0.3cm; size: A4; }
             
             body { 
                 background-color: white; 
@@ -36,6 +36,7 @@
                 font-size: 9px; 
             }
 
+            /* Ocultar elementos de navegação e interação */
             #login-screen, button, .no-print, #tab-calc, #tab-dash, #tab-ads,
             #auth-status-container, #firebase-help, .fa-print, .fa-sign-out-alt, 
             input[type=range], #btn-delete, #btn-save, .fa-plus, .fa-save, .fa-trash-alt,
@@ -45,20 +46,29 @@
 
             #app-content { 
                 box-shadow: none; max-width: 100%; width: 100%; margin: 0; border-radius: 0;
-                transform: scale(0.95); transform-origin: top center;
+                transform: scale(0.85); /* Redução maior para garantir fit */
+                transform-origin: top center;
+                overflow: visible;
             }
 
             .shopee-gradient { 
                 background: #ee4d2d !important; color: white !important; 
-                -webkit-print-color-adjust: exact; padding: 10px !important;
+                -webkit-print-color-adjust: exact; padding: 8px !important;
                 border-radius: 0 !important; margin-bottom: 5px !important;
             }
+            .shopee-gradient h1 { font-size: 14px !important; }
+            .shopee-gradient p { font-size: 8px !important; }
 
-            .p-6, .p-8, .md\:p-8, .p-5, .p-4 { padding: 4px !important; }
-            .space-y-8 > :not([hidden]) ~ :not([hidden]) { margin-top: 6px !important; }
+            /* Compactação Extrema de Espaçamentos */
+            .p-6, .p-8, .md\:p-8 { padding: 0 !important; }
+            .p-5, .p-4 { padding: 4px !important; }
+            
+            .space-y-8 > :not([hidden]) ~ :not([hidden]) { margin-top: 8px !important; }
             .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 4px !important; }
             .mb-8, .mb-4, .mb-3, .mb-2 { margin-bottom: 2px !important; }
-            .gap-4 { gap: 6px !important; }
+            .mt-6, .mt-5, .mt-4 { margin-top: 4px !important; }
+            .gap-4 { gap: 4px !important; }
+            .gap-3 { gap: 3px !important; }
             
             input, select { 
                 border: none !important; background: transparent !important; 
@@ -73,9 +83,12 @@
                 padding: 4px !important;
             }
             
-            #results-area, #camp-results, .grid { page-break-inside: avoid; }
-            #view-calc, #view-ads-analysis { display: block !important; }
+            /* Garante quebras de página corretas */
+            #results-area, #camp-results, .grid, .rounded-2xl { page-break-inside: avoid; }
+            
+            /* Ocultar explicitamente abas não ativas na impressão */
             .hidden { display: none !important; } 
+            
             .fa-chevron-down, .absolute.left-3, .absolute.right-3 { display: none !important; }
             input[type=number] { padding-left: 0 !important; }
         }
@@ -142,7 +155,7 @@
         
         <!-- Header -->
         <div class="shopee-gradient p-6 text-white text-center relative flex justify-between items-center">
-            <div class="w-8"></div>
+            <div class="w-8"></div> <!-- Spacer for center alignment -->
             <div>
                 <h1 class="text-2xl font-extrabold tracking-tight">Velt.AI <span class="font-light opacity-90">| Cloud</span></h1>
                 <p class="text-xs font-medium uppercase tracking-widest mt-1 opacity-90">Precificação, Ads & Firebase</p>
@@ -373,7 +386,7 @@
                         <span id="res-cpa" class="text-xl font-black text-purple-700">R$ 0,00</span>
                         <span id="res-cpa-restante" class="block text-[10px] font-bold text-gray-400 mt-1">Sobra: R$ 0,00</span>
                     </div>
-                    <!-- CARD DINÂMICO (CPC MÁX ou CONVERSÃO MÍN) -->
+                    <!-- CARD DINÂMICO -->
                     <div class="bg-orange-50 p-3 rounded-xl border border-orange-200 shadow-sm text-center">
                         <span id="lbl-res-secondary" class="block text-[10px] uppercase font-bold text-orange-600 mb-1">Taxa de Conversão Mínima</span>
                         <span id="res-secondary-val" class="text-2xl font-black text-orange-600">0.00%</span>
@@ -575,10 +588,7 @@
     window.selectedAdsProduct = null;
 
     // Helper functions global
-    window.getVal = (id) => {
-        const el = document.getElementById(id);
-        return el ? parseFloat(el.value) || 0 : 0;
-    };
+    window.getVal = (id) => parseFloat(document.getElementById(id).value) || 0;
     
     window.safeSetText = (id, text) => {
         const el = document.getElementById(id);
@@ -810,6 +820,10 @@
             if(el) el.value = val !== undefined ? val : (key === 'extra' || key === 'devolucao' ? 0 : el.value);
         }
         
+        if(data.margem) {
+             document.getElementById('label-margem').innerText = data.margem + "%";
+        }
+        
         window.toggleAdsMode();
         window.toggleAdsProfile();
         window.atualizarPrecificacao('manual'); 
@@ -872,10 +886,24 @@
 
     window.updateDashboardTable = () => {
         const tbody = document.getElementById('dash-tbody');
-        const ids = Object.keys(window.productsCache);
+        const searchInput = document.getElementById('dash-search');
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
+        
+        let ids = Object.keys(window.productsCache);
+        
+        if (searchTerm) {
+            ids = ids.filter(id => {
+                const p = window.productsCache[id];
+                return p.name.toLowerCase().includes(searchTerm);
+            });
+        }
+
         document.getElementById('dash-count').innerText = `${ids.length} produtos`;
 
-        if(ids.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">Vazio.</td></tr>'; return; }
+        if(ids.length === 0) { 
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">' + (searchTerm ? 'Nenhum produto encontrado.' : 'Vazio.') + '</td></tr>'; 
+            return; 
+        }
 
         let html = '';
         ids.forEach(id => {
