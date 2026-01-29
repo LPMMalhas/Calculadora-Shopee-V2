@@ -373,7 +373,7 @@
                         <span id="res-cpa" class="text-xl font-black text-purple-700">R$ 0,00</span>
                         <span id="res-cpa-restante" class="block text-[10px] font-bold text-gray-400 mt-1">Sobra: R$ 0,00</span>
                     </div>
-                    <!-- CARD DINÂMICO -->
+                    <!-- CARD DINÂMICO (CPC MÁX ou CONVERSÃO MÍN) -->
                     <div class="bg-orange-50 p-3 rounded-xl border border-orange-200 shadow-sm text-center">
                         <span id="lbl-res-secondary" class="block text-[10px] uppercase font-bold text-orange-600 mb-1">Taxa de Conversão Mínima</span>
                         <span id="res-secondary-val" class="text-2xl font-black text-orange-600">0.00%</span>
@@ -402,7 +402,7 @@
             </div>
         </div>
 
-        <!-- ABA ANÁLISE ADS -->
+        <!-- ABA ANÁLISE ADS (NOVA) -->
         <div id="view-ads-analysis" class="hidden p-6 md:p-8 space-y-8 animate-fade-in">
              <div class="flex items-center gap-2 mb-2 border-b border-gray-100 pb-2">
                 <div class="bg-purple-100 p-1.5 rounded-lg text-purple-600 no-print"><i class="fas fa-microscope text-sm"></i></div>
@@ -575,7 +575,15 @@
     window.selectedAdsProduct = null;
 
     // Helper functions global
-    window.getVal = (id) => parseFloat(document.getElementById(id).value) || 0;
+    window.getVal = (id) => {
+        const el = document.getElementById(id);
+        return el ? parseFloat(el.value) || 0 : 0;
+    };
+    
+    window.safeSetText = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = text;
+    };
 
     // 2. AUTH SYSTEM
     const initAuth = async () => {};
@@ -802,14 +810,8 @@
             if(el) el.value = val !== undefined ? val : (key === 'extra' || key === 'devolucao' ? 0 : el.value);
         }
         
-        // Força atualização visual dos labels
-        if(data.margem) {
-             document.getElementById('label-margem').innerText = data.margem + "%";
-        }
-        
         window.toggleAdsMode();
         window.toggleAdsProfile();
-        // CORREÇÃO CRÍTICA: Use 'manual' para preservar o preço carregado
         window.atualizarPrecificacao('manual'); 
         window.calcularGeral(false);
     };
@@ -870,24 +872,10 @@
 
     window.updateDashboardTable = () => {
         const tbody = document.getElementById('dash-tbody');
-        const searchInput = document.getElementById('dash-search');
-        const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
-        
-        let ids = Object.keys(window.productsCache);
-        
-        if (searchTerm) {
-            ids = ids.filter(id => {
-                const p = window.productsCache[id];
-                return p.name.toLowerCase().includes(searchTerm);
-            });
-        }
-
+        const ids = Object.keys(window.productsCache);
         document.getElementById('dash-count').innerText = `${ids.length} produtos`;
 
-        if(ids.length === 0) { 
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">' + (searchTerm ? 'Nenhum produto encontrado.' : 'Vazio.') + '</td></tr>'; 
-            return; 
-        }
+        if(ids.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">Vazio.</td></tr>'; return; }
 
         let html = '';
         ids.forEach(id => {
@@ -988,14 +976,16 @@
 
         const precoBase = window.getVal('preco-venda');
         const precoFinal = calcularPrecoFinal(precoBase);
-        document.getElementById('preco-final-display').innerText = "R$ " + precoFinal.toFixed(2);
+        window.safeSetText('preco-final-display', "R$ " + precoFinal.toFixed(2));
         
         const custoTotalTaxas = precoFinal * taxasVariaveis;
         const lucroLiquido = precoFinal - custosFixosReais - custoTotalTaxas;
         
         const elLucro = document.getElementById('lucro-real');
-        elLucro.innerText = "R$ " + lucroLiquido.toFixed(2);
-        elLucro.className = lucroLiquido < 0 ? "text-xl font-black text-red-600" : "text-xl font-black text-green-600";
+        if (elLucro) {
+            elLucro.innerText = "R$ " + lucroLiquido.toFixed(2);
+            elLucro.className = lucroLiquido < 0 ? "text-xl font-black text-red-600" : "text-xl font-black text-green-600";
+        }
     };
 
     window.calcularGeral = function(scroll = true) {
@@ -1041,26 +1031,32 @@
         const acosIdeal = roasIdeal > 0 ? (100 / roasIdeal) : 0;
         const lucroPosAds = lucroUnit - cpaAlvo;
 
-        document.getElementById('res-cpa').innerText = "R$ " + cpaAlvo.toFixed(2);
+        window.safeSetText('res-cpa', "R$ " + cpaAlvo.toFixed(2));
+        
         const elSobra = document.getElementById('res-cpa-restante');
-        elSobra.innerText = "Sobra: R$ " + lucroPosAds.toFixed(2);
-        elSobra.className = lucroPosAds >= 0 ? "block text-[10px] font-bold text-green-600 mt-1" : "block text-[10px] font-bold text-red-500 mt-1";
+        if (elSobra) {
+            elSobra.innerText = "Sobra: R$ " + lucroPosAds.toFixed(2);
+            elSobra.className = lucroPosAds >= 0 ? "block text-[10px] font-bold text-green-600 mt-1" : "block text-[10px] font-bold text-red-500 mt-1";
+        }
 
-        document.getElementById('lbl-res-secondary').innerText = displayMainLabel;
-        document.getElementById('res-secondary-val').innerText = displayMainVal;
-        document.getElementById('res-secondary-sub').innerText = displayMainSub;
+        window.safeSetText('lbl-res-secondary', displayMainLabel);
+        window.safeSetText('res-secondary-val', displayMainVal);
+        window.safeSetText('res-secondary-sub', displayMainSub);
 
         if(perfilAds == 0) {
-            document.getElementById('res-roas-ideal').innerText = "ROAS: -"; document.getElementById('res-acos-ideal').innerText = "ACOS: 0%";
+            window.safeSetText('res-roas-ideal', "ROAS: -"); window.safeSetText('res-acos-ideal', "ACOS: 0%");
         } else {
-            document.getElementById('res-roas-ideal').innerText = "ROAS: " + roasIdeal.toFixed(2); document.getElementById('res-acos-ideal').innerText = "ACOS: " + acosIdeal.toFixed(1) + "%";
+            window.safeSetText('res-roas-ideal', "ROAS: " + roasIdeal.toFixed(2)); window.safeSetText('res-acos-ideal', "ACOS: " + acosIdeal.toFixed(1) + "%");
         }
-        document.getElementById('res-roas-breakeven').innerText = "ROAS: " + roasBreakeven.toFixed(2);
-        document.getElementById('res-acos-breakeven').innerText = "ACOS: " + acosBreakeven.toFixed(1) + "%";
+        window.safeSetText('res-roas-breakeven', "ROAS: " + roasBreakeven.toFixed(2));
+        window.safeSetText('res-acos-breakeven', "ACOS: " + acosBreakeven.toFixed(1) + "%");
 
         renderizarProvaReal(precoBase, custo, extra, fixo);
-        document.getElementById('results-area').classList.remove('hidden');
-        if(scroll) document.getElementById('results-area').scrollIntoView({ behavior: 'smooth' });
+        const resArea = document.getElementById('results-area');
+        if(resArea) {
+            resArea.classList.remove('hidden');
+            if(scroll) resArea.scrollIntoView({ behavior: 'smooth' });
+        }
     };
 
     function checkVereditoOrganic(lucroUnit) {
@@ -1084,6 +1080,8 @@
         const tit = document.getElementById('veredito-titulo');
         const txt = document.getElementById('veredito-texto');
         
+        if (!cont || !icon || !tit || !txt) return;
+
         const colors = { red: ['border-red-500', 'bg-red-50', 'text-red-500'], green: ['border-green-500', 'bg-green-50', 'text-green-500'], blue: ['border-blue-500', 'bg-blue-50', 'text-blue-500'] };
         const c = colors[color];
         cont.className = `p-4 rounded-xl border-l-4 shadow-sm flex items-start gap-3 ${c[1]} ${c[0]}`;
@@ -1100,6 +1098,8 @@
         const valComissao = precoFinal * (comissao / 100); const valImposto = precoFinal * (imposto / 100); const valDevolucao = precoFinal * (devolucao / 100);
         const custoTotal = custo + extra + fixo + valComissao + valImposto + valDevolucao; const lucroFinal = precoFinal - custoTotal;
         const container = document.getElementById('breakdown-container');
+        if (!container) return;
+
         const row = (lbl, pct, val, clr) => `<div class="flex justify-between items-center"><span class="${clr}">${lbl} ${pct?`(${pct}%)`:''}</span><span class="${clr}">${val < 0 ? '-' : ''} R$ ${Math.abs(val).toFixed(2)}</span></div>`;
         
         container.innerHTML = `
@@ -1136,9 +1136,9 @@
         
         window.selectedAdsProduct = { name: p.name, lucroUnit: lucroUnit, margem: margem, targetRoas: targetRoas, targetCpa: targetCpa };
         
-        document.getElementById('ads-info-margin').innerText = margem.toFixed(1) + "%";
-        document.getElementById('ads-info-profit').innerText = "R$ " + lucroUnit.toFixed(2);
-        document.getElementById('ads-info-roas').innerText = targetRoas.toFixed(2);
+        window.safeSetText('ads-info-margin', margem.toFixed(1) + "%");
+        window.safeSetText('ads-info-profit', "R$ " + lucroUnit.toFixed(2));
+        window.safeSetText('ads-info-roas', targetRoas.toFixed(2));
         document.getElementById('ads-product-info').classList.remove('hidden');
         analisarCampanha();
     };
@@ -1148,6 +1148,7 @@
         const gmv = window.getVal('camp-gmv'); const conversions = window.getVal('camp-conversions'); const items = window.getVal('camp-items');
         const resultDiv = document.getElementById('camp-results');
         
+        if(!resultDiv) return;
         if(clicks === 0 && expense === 0) { resultDiv.classList.add('hidden'); return; }
         resultDiv.classList.remove('hidden');
 
@@ -1158,13 +1159,13 @@
         const cpa = conversions > 0 ? (expense / conversions) : 0;
         const cpc = clicks > 0 ? (expense / clicks) : 0;
 
-        document.getElementById('res-camp-roas').innerText = roas.toFixed(2);
-        document.getElementById('res-camp-acos').innerText = acos.toFixed(1) + "%";
-        document.getElementById('res-camp-ctr').innerText = ctr.toFixed(2) + "%";
-        document.getElementById('res-camp-cr').innerText = cr.toFixed(2) + "%";
-        document.getElementById('res-camp-cpa').innerText = "R$ " + cpa.toFixed(2);
-        document.getElementById('res-camp-cpc').innerText = "R$ " + cpc.toFixed(2);
-        document.getElementById('res-camp-items').innerText = items;
+        window.safeSetText('res-camp-roas', roas.toFixed(2));
+        window.safeSetText('res-camp-acos', acos.toFixed(1) + "%");
+        window.safeSetText('res-camp-ctr', ctr.toFixed(2) + "%");
+        window.safeSetText('res-camp-cr', cr.toFixed(2) + "%");
+        window.safeSetText('res-camp-cpa', "R$ " + cpa.toFixed(2));
+        window.safeSetText('res-camp-cpc', "R$ " + cpc.toFixed(2));
+        window.safeSetText('res-camp-items', items);
 
         const profitBox = document.getElementById('camp-profit-box');
         const compTable = document.getElementById('comp-analysis-container');
@@ -1173,19 +1174,17 @@
         const verdictEl = document.getElementById('camp-verdict');
 
         if (window.selectedAdsProduct) {
-            // CORREÇÃO: LUCRO REAL DA CAMPANHA = (ITENS VENDIDOS * LUCRO UNITÁRIO) - INVESTIMENTO
             const quantitySold = items > 0 ? items : conversions;
             const netCampaignProfit = (quantitySold * window.selectedAdsProduct.lucroUnit) - expense;
             
-            document.getElementById('res-camp-profit').innerText = "R$ " + netCampaignProfit.toFixed(2);
-            document.getElementById('res-camp-profit').className = netCampaignProfit >= 0 ? "text-2xl font-black text-green-600" : "text-2xl font-black text-red-600";
-            
-            if (conversions > 0) {
-                 const exactProfit = (conversions * window.selectedAdsProduct.lucroUnit) - expense;
-                 document.getElementById('res-camp-profit').innerText = "R$ " + exactProfit.toFixed(2);
-                 document.getElementById('res-camp-profit-desc').innerText = `${conversions} vendas x R$ ${window.selectedAdsProduct.lucroUnit.toFixed(2)} (lucro unit) - R$ ${expense.toFixed(2)} (ads)`;
+            const profitEl = document.getElementById('res-camp-profit');
+            if (profitEl) {
+                profitEl.innerText = "R$ " + netCampaignProfit.toFixed(2);
+                profitEl.className = netCampaignProfit >= 0 ? "text-2xl font-black text-green-600" : "text-2xl font-black text-red-600";
             }
-            profitBox.classList.remove('hidden');
+            window.safeSetText('res-camp-profit-desc', `${quantitySold} itens x R$ ${window.selectedAdsProduct.lucroUnit.toFixed(2)} (lucro unit) - R$ ${expense.toFixed(2)} (ads)`);
+            
+            if(profitBox) profitBox.classList.remove('hidden');
 
             const targetCpa = window.selectedAdsProduct.targetCpa;
             const targetRoas = window.selectedAdsProduct.targetRoas;
@@ -1211,7 +1210,7 @@
             rows += row('CPC (Ideal)', `< R$ ${maxCpc.toFixed(2)}`, `R$ ${cpc.toFixed(2)}`, cpc <= maxCpc, 'Eficiente', 'Caro');
             rows += row('Conv. (Nec.)', `> ${targetConv.toFixed(1)}%`, `${cr.toFixed(1)}%`, cr >= targetConv, 'Ótimo', 'Baixa');
 
-            compBody.innerHTML = rows;
+            if(compBody) compBody.innerHTML = rows;
 
             let diagnosis = "";
             if (cpa > targetCpa) {
@@ -1236,31 +1235,36 @@
                     </div>
                 `;
             }
-            diagText.innerHTML = diagnosis;
-            compTable.classList.remove('hidden');
+            if(diagText) diagText.innerHTML = diagnosis;
+            if(compTable) compTable.classList.remove('hidden');
 
-             // Veredito Baseado no Produto Real
              if (netCampaignProfit < 0) {
-                 verdictEl.innerText = `PREJUÍZO OPERACIONAL: A campanha queimou R$ ${Math.abs(netCampaignProfit).toFixed(2)}. Pause palavras-chave amplas ou reduza o teto de lance.`;
-                 verdictEl.className = "text-xs text-red-600 leading-relaxed font-bold";
+                 if(verdictEl) {
+                     verdictEl.innerText = `PREJUÍZO OPERACIONAL: A campanha queimou R$ ${Math.abs(netCampaignProfit).toFixed(2)}. Pause palavras-chave amplas ou reduza o teto de lance.`;
+                     verdictEl.className = "text-xs text-red-600 leading-relaxed font-bold";
+                 }
              } else {
-                 verdictEl.innerText = "LUCRO OPERACIONAL: O produto se paga. Foque em manter o ROAS estável enquanto aumenta o volume.";
-                 verdictEl.className = "text-xs text-green-600 leading-relaxed font-bold";
+                 if(verdictEl) {
+                     verdictEl.innerText = "LUCRO OPERACIONAL: O produto se paga. Foque em manter o ROAS estável enquanto aumenta o volume.";
+                     verdictEl.className = "text-xs text-green-600 leading-relaxed font-bold";
+                 }
              }
 
         } else {
-            profitBox.classList.add('hidden');
-            compTable.classList.add('hidden');
+            if(profitBox) profitBox.classList.add('hidden');
+            if(compTable) compTable.classList.add('hidden');
             
-            if(acos > 40) {
-                verdictEl.innerText = "Atenção Crítica: O custo do anúncio está consumindo mais de 40% da receita. Verifique margem.";
-                verdictEl.className = "text-xs text-red-600 leading-relaxed font-bold";
-            } else if (roas < 3) {
-                verdictEl.innerText = "Alerta: ROAS baixo (< 3). Cuidado com prejuízo.";
-                verdictEl.className = "text-xs text-orange-600 leading-relaxed font-bold";
-            } else {
-                 verdictEl.innerText = "Saudável: Métricas dentro de parâmetros aceitáveis.";
-                 verdictEl.className = "text-xs text-green-600 leading-relaxed font-bold";
+            if(verdictEl) {
+                if(acos > 40) {
+                    verdictEl.innerText = "Atenção Crítica: O custo do anúncio está consumindo mais de 40% da receita. Verifique margem.";
+                    verdictEl.className = "text-xs text-red-600 leading-relaxed font-bold";
+                } else if (roas < 3) {
+                    verdictEl.innerText = "Alerta: ROAS baixo (< 3). Cuidado com prejuízo.";
+                    verdictEl.className = "text-xs text-orange-600 leading-relaxed font-bold";
+                } else {
+                     verdictEl.innerText = "Saudável: Métricas dentro de parâmetros aceitáveis.";
+                     verdictEl.className = "text-xs text-green-600 leading-relaxed font-bold";
+                }
             }
         }
     }
