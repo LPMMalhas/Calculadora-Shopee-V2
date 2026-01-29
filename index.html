@@ -36,10 +36,11 @@
                 font-size: 9px; 
             }
 
+            /* Esconde elementos de navegação e botões */
             #login-screen, button, .no-print, #tab-calc, #tab-dash, #tab-ads,
             #auth-status-container, #firebase-help, .fa-print, .fa-sign-out-alt, 
             input[type=range], #btn-delete, #btn-save, .fa-plus, .fa-save, .fa-trash-alt,
-            #ads-saved-products, .fa-chevron-down { 
+            #ads-saved-products, .fa-chevron-down, .action-bar { 
                 display: none !important; 
             }
 
@@ -73,9 +74,12 @@
                 padding: 4px !important;
             }
             
+            /* Garante quebras de página corretas */
             #results-area, #camp-results, .grid { page-break-inside: avoid; }
-            #view-calc, #view-ads-analysis { display: block !important; }
+            
+            /* Ocultar explicitamente abas não ativas na impressão */
             .hidden { display: none !important; } 
+            
             .fa-chevron-down, .absolute.left-3, .absolute.right-3 { display: none !important; }
             input[type=number] { padding-left: 0 !important; }
         }
@@ -148,7 +152,6 @@
                 <p class="text-xs font-medium uppercase tracking-widest mt-1 opacity-90">Precificação, Ads & Firebase</p>
             </div>
             <div class="flex gap-4">
-                <i class="fas fa-print cursor-pointer text-white text-xl opacity-80 hover:opacity-100 transition-opacity" onclick="imprimirRelatorio()" title="Imprimir / Salvar PDF"></i>
                 <i class="fas fa-sign-out-alt cursor-pointer text-white text-xl opacity-60 hover:opacity-100 transition-opacity no-print" onclick="fazerLogout()" title="Sair da Conta"></i>
             </div>
         </div>
@@ -210,13 +213,17 @@
                     </button>
                 </div>
 
-                <div class="flex justify-end gap-3 mt-4 pt-3 border-t border-gray-200 no-print">
+                <!-- BARRA DE AÇÕES CALCULADORA -->
+                <div class="action-bar flex justify-end gap-3 mt-4 pt-3 border-t border-gray-200 no-print">
+                    <button onclick="imprimirRelatorio('calc')" class="text-[10px] font-bold text-gray-600 hover:text-gray-800 flex items-center gap-1 uppercase">
+                        <i class="fas fa-print"></i> Imprimir Análise
+                    </button>
                     <button onclick="exportarBackup()" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 uppercase">
-                        <i class="fas fa-download"></i> Exportar Backup
+                        <i class="fas fa-download"></i> Exportar
                     </button>
                     <label class="text-[10px] font-bold text-green-600 hover:text-green-800 flex items-center gap-1 uppercase cursor-pointer">
-                        <i class="fas fa-upload"></i> Importar Backup
-                        <input type="file" id="import-file" class="hidden" onchange="importarBackup(this)">
+                        <i class="fas fa-upload"></i> Importar
+                        <input type="file" id="import-file-calc" class="hidden" onchange="importarBackup(this)">
                     </label>
                 </div>
             </div>
@@ -373,7 +380,7 @@
                         <span id="res-cpa" class="text-xl font-black text-purple-700">R$ 0,00</span>
                         <span id="res-cpa-restante" class="block text-[10px] font-bold text-gray-400 mt-1">Sobra: R$ 0,00</span>
                     </div>
-                    <!-- CARD DINÂMICO (CPC MÁX ou CONVERSÃO MÍN) -->
+                    <!-- CARD DINÂMICO -->
                     <div class="bg-orange-50 p-3 rounded-xl border border-orange-200 shadow-sm text-center">
                         <span id="lbl-res-secondary" class="block text-[10px] uppercase font-bold text-orange-600 mb-1">Taxa de Conversão Mínima</span>
                         <span id="res-secondary-val" class="text-2xl font-black text-orange-600">0.00%</span>
@@ -402,7 +409,7 @@
             </div>
         </div>
 
-        <!-- ABA ANÁLISE ADS (NOVA) -->
+        <!-- ABA ANÁLISE ADS -->
         <div id="view-ads-analysis" class="hidden p-6 md:p-8 space-y-8 animate-fade-in">
              <div class="flex items-center gap-2 mb-2 border-b border-gray-100 pb-2">
                 <div class="bg-purple-100 p-1.5 rounded-lg text-purple-600 no-print"><i class="fas fa-microscope text-sm"></i></div>
@@ -492,6 +499,20 @@
                 </div>
                 <div class="bg-white border p-3 rounded-lg text-center"><span class="block text-[8px] font-bold text-gray-400 uppercase">Itens Vendidos</span><span id="res-camp-items" class="text-lg font-bold text-gray-700">0</span></div>
                 <div class="bg-gray-50 border-l-4 border-gray-400 p-4 rounded-r-xl"><h4 class="text-xs font-bold text-gray-700 uppercase mb-1">Diagnóstico Rápido</h4><p id="camp-verdict" class="text-xs text-gray-600 leading-relaxed">-</p></div>
+                
+                <!-- BARRA DE AÇÕES ANÁLISE ADS -->
+                <div class="action-bar flex justify-end gap-3 mt-4 pt-3 border-t border-gray-200 no-print">
+                    <button onclick="imprimirRelatorio('ads')" class="text-[10px] font-bold text-gray-600 hover:text-gray-800 flex items-center gap-1 uppercase">
+                        <i class="fas fa-print"></i> Imprimir Diagnóstico
+                    </button>
+                    <button onclick="exportarBackup()" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 uppercase">
+                        <i class="fas fa-download"></i> Exportar
+                    </button>
+                    <label class="text-[10px] font-bold text-green-600 hover:text-green-800 flex items-center gap-1 uppercase cursor-pointer">
+                        <i class="fas fa-upload"></i> Importar
+                        <input type="file" id="import-file-ads" class="hidden" onchange="importarBackup(this)">
+                    </label>
+                </div>
             </div>
         </div>
 
@@ -503,6 +524,20 @@
                     <thead><tr class="text-[10px] uppercase text-gray-400 border-b border-gray-200"><th class="py-2 pl-2">Produto</th><th class="py-2">Preço</th><th class="py-2">Custo</th><th class="py-2">Lucro</th><th class="py-2 text-center">Margem</th><th class="py-2 pr-2 text-right"></th></tr></thead>
                     <tbody id="dash-tbody" class="text-sm"></tbody>
                 </table>
+            </div>
+
+            <!-- BARRA DE AÇÕES DASHBOARD -->
+            <div class="action-bar flex justify-end gap-3 mt-4 pt-3 border-t border-gray-200 no-print">
+                <button onclick="imprimirRelatorio('dash')" class="text-[10px] font-bold text-gray-600 hover:text-gray-800 flex items-center gap-1 uppercase">
+                    <i class="fas fa-print"></i> Imprimir Portfolio
+                </button>
+                <button onclick="exportarBackup()" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 uppercase">
+                    <i class="fas fa-download"></i> Exportar
+                </button>
+                <label class="text-[10px] font-bold text-green-600 hover:text-green-800 flex items-center gap-1 uppercase cursor-pointer">
+                    <i class="fas fa-upload"></i> Importar
+                    <input type="file" id="import-file-dash" class="hidden" onchange="importarBackup(this)">
+                </label>
             </div>
         </div>
         
@@ -754,7 +789,7 @@
         const fields = {
             'custo': data.custo, 'extra': data.extra, 'taxa-fixa': data.taxaFixa, 
             'comissao': data.comissao, 'imposto': data.imposto, 'devolucao': data.devolucao,
-            'desc-cupom': data.descCupom, 'desc-relampago': data.descRelampago,
+            'desc-cupom': data.desc-cupom, 'desc-relampago': data.descRelampago,
             'margem-slider': data.margem, 'preco-venda': data.precoVenda, 
             'ads-mode': data.adsMode || 'cpc', 'ads-input': loadedAdsInput,
             'perfil-ads': data.perfilAds, 'custom-cpa': data.customCpa || 10.00
@@ -884,6 +919,7 @@
     window.toggleAdsMode = function() {
         const mode = document.getElementById('ads-mode').value;
         const label = document.getElementById('lbl-ads-input');
+        const input = document.getElementById('ads-input');
         const container = document.getElementById('ads-input-container');
         if(mode === 'none') { container.classList.add('hidden'); } else { container.classList.remove('hidden'); if(mode === 'cpc') label.innerText = "CPC Estimado (R$)"; else label.innerText = "Conversão Estimada (%)"; }
     }
@@ -1151,7 +1187,7 @@
 
             compBody.innerHTML = rows;
 
-            // DIAGNÓSTICO TEXTUAL
+            // DIAGNÓSTICO TEXTUAL (Especialista em Shopee)
             let diagnosis = "";
             if (cpa > targetCpa) {
                 diagnosis = `<strong class="text-red-700">🔴 ANÁLISE TÉCNICA: CAMPANHA INEFICIENTE</strong><br>`;
@@ -1178,7 +1214,7 @@
             diagText.innerHTML = diagnosis;
             compTable.classList.remove('hidden');
 
-             // Veredito Final
+             // Veredito Baseado no Produto Real
              if (netCampaignProfit < 0) {
                  verdictEl.innerText = `PREJUÍZO OPERACIONAL: A campanha queimou R$ ${Math.abs(netCampaignProfit).toFixed(2)}. Pause palavras-chave amplas ou reduza o teto de lance.`;
                  verdictEl.className = "text-xs text-red-600 leading-relaxed font-bold";
@@ -1205,11 +1241,17 @@
         }
     }
     
-    // Função de impressão com nome de arquivo
+    // Função de impressão com nome de arquivo e escopo de aba
     window.imprimirRelatorio = function() {
-        const nomeProd = document.getElementById('prod-name').value || "Relatorio_Precificacao";
-        // Substitui espaços por underscores e caracteres especiais
-        const safeName = nomeProd.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        const nomeProd = document.getElementById('prod-name').value || "Relatorio_VeltAI";
+        let prefix = "Geral";
+        
+        // Determina qual aba está visível para nomear o arquivo
+        if(!document.getElementById('view-calc').classList.contains('hidden')) prefix = "Precificacao";
+        else if(!document.getElementById('view-ads-analysis').classList.contains('hidden')) prefix = "Analise_Ads";
+        else if(!document.getElementById('view-dash').classList.contains('hidden')) prefix = "Portfolio";
+
+        const safeName = `${prefix}_${nomeProd.replace(/[^a-z0-9]/gi, '_').toLowerCase()}`;
         
         const originalTitle = document.title;
         document.title = safeName;
