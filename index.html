@@ -541,9 +541,7 @@
     window.getVal = (id) => parseFloat(document.getElementById(id).value) || 0;
 
     // 2. AUTH SYSTEM
-    const initAuth = async () => {
-        // Nada automático
-    };
+    const initAuth = async () => {};
     initAuth();
 
     onAuthStateChanged(auth, (user) => {
@@ -886,7 +884,6 @@
     window.toggleAdsMode = function() {
         const mode = document.getElementById('ads-mode').value;
         const label = document.getElementById('lbl-ads-input');
-        const input = document.getElementById('ads-input');
         const container = document.getElementById('ads-input-container');
         if(mode === 'none') { container.classList.add('hidden'); } else { container.classList.remove('hidden'); if(mode === 'cpc') label.innerText = "CPC Estimado (R$)"; else label.innerText = "Conversão Estimada (%)"; }
     }
@@ -1118,16 +1115,14 @@
         const verdictEl = document.getElementById('camp-verdict');
 
         if (window.selectedAdsProduct) {
-            const grossProfit = gmv * (window.selectedAdsProduct.margem / 100);
-            const netCampaignProfit = grossProfit - expense;
+            // CORREÇÃO: LUCRO REAL DA CAMPANHA = (ITENS VENDIDOS * LUCRO UNITÁRIO) - INVESTIMENTO
+            const quantitySold = items > 0 ? items : conversions;
+            const netCampaignProfit = (quantitySold * window.selectedAdsProduct.lucroUnit) - expense;
+            
             document.getElementById('res-camp-profit').innerText = "R$ " + netCampaignProfit.toFixed(2);
             document.getElementById('res-camp-profit').className = netCampaignProfit >= 0 ? "text-2xl font-black text-green-600" : "text-2xl font-black text-red-600";
+            document.getElementById('res-camp-profit-desc').innerText = `${quantitySold} itens x R$ ${window.selectedAdsProduct.lucroUnit.toFixed(2)} (lucro unit) - R$ ${expense.toFixed(2)} (ads)`;
             
-            if (conversions > 0) {
-                 const exactProfit = (conversions * window.selectedAdsProduct.lucroUnit) - expense;
-                 document.getElementById('res-camp-profit').innerText = "R$ " + exactProfit.toFixed(2);
-                 document.getElementById('res-camp-profit-desc').innerText = `${conversions} vendas x R$ ${window.selectedAdsProduct.lucroUnit.toFixed(2)} (lucro unit) - R$ ${expense.toFixed(2)} (ads)`;
-            }
             profitBox.classList.remove('hidden');
 
             const targetCpa = window.selectedAdsProduct.targetCpa;
@@ -1156,20 +1151,47 @@
 
             compBody.innerHTML = rows;
 
+            // DIAGNÓSTICO TEXTUAL
             let diagnosis = "";
             if (cpa > targetCpa) {
-                if (cpc > maxCpc && cr >= targetConv) diagnosis = "🚨 O CPA está alto porque o <b>Clique está muito caro</b>. Sua conversão é boa, tente baixar o lance.";
-                else if (cr < targetConv) diagnosis = "⚠️ O CPA está alto porque a <b>Taxa de Conversão está baixa</b>. Melhore o anúncio ou preço.";
-                else diagnosis = "❌ Campanha operando com prejuízo em relação à meta.";
+                diagnosis = `<strong class="text-red-700">🔴 ANÁLISE TÉCNICA: CAMPANHA INEFICIENTE</strong><br>`;
+                diagnosis += `<div class="mt-2 text-gray-700 text-xs space-y-1">`;
+                if (cpc > maxCpc) {
+                    diagnosis += `• <b>CPC Inflacionado:</b> O leilão está caro (R$ ${cpc.toFixed(2)}). Para viabilizar, seu CTR precisa subir urgente. Teste novas capas.`;
+                }
+                if (cr < targetConv) {
+                    diagnosis += `• <b>Conversão Crítica:</b> Apenas ${cr.toFixed(2)}% compram. O tráfego chega e sai. Melhore descrição, provas sociais ou revise se o preço está competitivo.`;
+                }
+                if (acos > window.selectedAdsProduct.margem) {
+                     diagnosis += `• <b>ACOS Explosivo:</b> Você gasta ${acos.toFixed(1)}% da venda em ads, mas sua margem é ${window.selectedAdsProduct.margem.toFixed(1)}%. Prejuízo garantido.`;
+                }
+                diagnosis += `</div>`;
             } else {
-                diagnosis = "✅ <b>Parabéns!</b> Sua campanha está performando dentro da meta de lucratividade.";
+                diagnosis = `
+                    <strong class="text-green-700">🟢 ANÁLISE TÉCNICA: CAMPANHA ESCALÁVEL</strong><br>
+                    <div class="mt-1 text-gray-600 text-xs">
+                    Métricas saudáveis. O CPA (R$ ${cpa.toFixed(2)}) permite lucro. <br>
+                    <b>Próximo passo:</b> Aumente o orçamento diário em 20% a cada 3 dias para escalar sem perder a eficiência (ROAS).
+                    </div>
+                `;
             }
             diagText.innerHTML = diagnosis;
             compTable.classList.remove('hidden');
+
+             // Veredito Final
+             if (netCampaignProfit < 0) {
+                 verdictEl.innerText = `PREJUÍZO OPERACIONAL: A campanha queimou R$ ${Math.abs(netCampaignProfit).toFixed(2)}. Pause palavras-chave amplas ou reduza o teto de lance.`;
+                 verdictEl.className = "text-xs text-red-600 leading-relaxed font-bold";
+             } else {
+                 verdictEl.innerText = "LUCRO OPERACIONAL: O produto se paga. Foque em manter o ROAS estável enquanto aumenta o volume.";
+                 verdictEl.className = "text-xs text-green-600 leading-relaxed font-bold";
+             }
+
         } else {
             profitBox.classList.add('hidden');
             compTable.classList.add('hidden');
             
+            // Veredito Genérico
             if(acos > 40) {
                 verdictEl.innerText = "Atenção Crítica: O custo do anúncio está consumindo mais de 40% da receita. Verifique margem.";
                 verdictEl.className = "text-xs text-red-600 leading-relaxed font-bold";
