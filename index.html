@@ -46,14 +46,14 @@
 
             #app-content { 
                 box-shadow: none; max-width: 100%; width: 100%; margin: 0; border-radius: 0;
-                transform: scale(0.85); /* Redução maior para garantir fit */
+                transform: scale(0.80); /* Redução para 0.80 para garantir que a nova seção caiba */
                 transform-origin: top center;
                 overflow: visible;
             }
 
             .shopee-gradient { 
                 background: #ee4d2d !important; color: white !important; 
-                -webkit-print-color-adjust: exact; padding: 8px !important;
+                -webkit-print-color-adjust: exact; padding: 10px !important;
                 border-radius: 0 !important; margin-bottom: 5px !important;
             }
             .shopee-gradient h1 { font-size: 14px !important; }
@@ -358,10 +358,14 @@
                         </div>
                     </div>
                 </div>
+
+                <button onclick="calcularGeral(true)" class="w-full py-4 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:bg-gray-800 transform active:scale-95 transition-all flex justify-center items-center gap-2 mt-4 no-print">
+                    <i class="fas fa-calculator text-yellow-400"></i> CALCULAR VIABILIDADE
+                </button>
             </div>
 
             <!-- 3. ESTRATÉGIA OFERTA RELÂMPAGO -->
-            <div class="space-y-4 no-print">
+            <div class="space-y-4">
                 <div class="flex items-center gap-2 mb-2 border-b border-gray-100 pb-2">
                     <div class="bg-yellow-100 p-1.5 rounded-lg text-yellow-600"><i class="fas fa-bolt text-sm"></i></div>
                     <h2 class="text-sm font-bold text-gray-700 uppercase">3. Simulação Oferta Relâmpago</h2>
@@ -887,9 +891,7 @@
         // Sync Relampago Slider
         const sliderR = document.getElementById('slider-relampago');
         if(sliderR && data.descRelampago) {
-            // Slider starts as saved relampago value if user wants to see it first, or 0? 
-            // Usually simulation starts at 0 or at saved value.
-            // Let's start at 0 to show "base" state before tweaking.
+            // Start simulation at 0 to show contrast
             sliderR.value = 0; 
             document.getElementById('lbl-slider-relampago').innerText = "0%";
         }
@@ -916,7 +918,10 @@
         });
         
         const slider = document.getElementById('margem-slider');
-        if(slider) slider.value = 15;
+        if(slider) {
+            slider.value = 15;
+            document.getElementById('label-margem').innerText = "15%";
+        }
         
         const sliderR = document.getElementById('slider-relampago');
         if(sliderR) {
@@ -1147,16 +1152,17 @@
          });
     });
     
-    // desc-relampago input listener (Section 1)
+    // desc-relampago input listener (Section 1) - ONLY syncs slider if slider hasn't been touched?
+    // User requested: "No campo 3... deverá aparecer o valor que coloquei... para servir de base".
+    // So if Section 1 changes, Section 3 slider should reflect it initially.
     const descRelampagoInput = document.getElementById('desc-relampago');
     if(descRelampagoInput) {
         descRelampagoInput.addEventListener('input', (e) => {
-             // Syncs slider start point
              const val = e.target.value || 0;
              const slider = document.getElementById('slider-relampago');
              if(slider) {
                 slider.value = val;
-                simularRelampago(); // updates simulation UI
+                simularRelampago(); 
              }
              triggerUpdate('slider'); // updates main calc
         });
@@ -1299,12 +1305,8 @@
         }
         window.safeSetText('res-roas-breakeven', "ROAS: " + roasBreakeven.toFixed(2));
         window.safeSetText('res-acos-breakeven', "ACOS: " + acosBreakeven.toFixed(1) + "%");
-        
-        // This calculates general breakdown using stored input desc-relampago.
-        // But simularRelampago calls renderizarProvaReal again with custom value.
-        // To avoid flickering, rely on simularRelampago being called at end of update chain.
-        // simularRelampago() is called at end of atualizarPrecificacao().
-        
+
+        renderizarProvaReal(precoBase, custo, extra, fixo);
         const resArea = document.getElementById('results-area');
         if(resArea) {
             resArea.classList.remove('hidden');
