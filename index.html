@@ -41,7 +41,7 @@
             #auth-status-container, #firebase-help, .fa-print, .fa-sign-out-alt, 
             input[type=range], #btn-delete, #btn-save, .fa-plus, .fa-save, .fa-trash-alt, .fa-eraser,
             #ads-saved-products, .fa-chevron-down, .action-bar, #dash-search-container,
-            #prod-name { /* Oculta o input original na impressão */
+            #prod-name-label, #prod-name { 
                 display: none !important; 
             }
 
@@ -50,6 +50,23 @@
                 transform: scale(0.95);
                 transform-origin: top center;
                 overflow: visible;
+            }
+
+            /* Forçar visibilidade do nome do produto APENAS no print */
+            #prod-name-print {
+                display: block !important;
+                width: 100% !important;
+                white-space: normal !important;
+                word-break: break-all !important; /* Garante que SKU longos quebrem linha */
+                overflow-wrap: break-word !important;
+                margin-bottom: 10px !important;
+            }
+            
+            /* Ajuste do container pai para garantir largura total na impressão */
+            #prod-name-container {
+                display: block !important;
+                width: 100% !important;
+                flex: none !important;
             }
 
             .shopee-gradient { 
@@ -202,12 +219,12 @@
                 </div>
 
                 <div class="flex flex-col md:flex-row gap-3 mb-4">
-                    <div class="flex-grow">
-                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide print:hidden">Nome do Produto</label>
-                        <!-- Input visível na tela, oculto no print -->
+                    <div class="flex-grow" id="prod-name-container">
+                        <label id="prod-name-label" class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Nome do Produto</label>
+                        <!-- Input para digitar -->
                         <input type="text" id="prod-name" placeholder="Ex: Tenis_Corrida" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold outline-none focus:border-orange-500 uppercase transition-all">
-                        <!-- Div visível apenas no print -->
-                        <div id="prod-name-print" class="hidden print:block text-2xl font-black uppercase text-gray-800 border-b-2 border-orange-500 pb-1 mb-2"></div>
+                        <!-- Elemento EXCLUSIVO para impressão (com quebra de linha forçada) -->
+                        <div id="prod-name-print" class="hidden text-xl font-black uppercase text-gray-800 border-b-2 border-orange-500 pb-1 mb-2 break-all whitespace-normal leading-tight"></div>
                         <input type="hidden" id="prod-id">
                     </div>
                     <div class="flex items-end gap-2 no-print">
@@ -659,6 +676,9 @@
         if (el) el.innerText = text;
     };
 
+    // Variáveis Globais de Elementos (Definidas no topo para garantir acesso)
+    let margemSlider = null;
+
     // 2. AUTH SYSTEM
     const initAuth = async () => {};
     initAuth();
@@ -787,6 +807,15 @@
         });
     }
 
+    // LISTENER PARA IMPRESSÃO AUTOMÁTICA
+    window.addEventListener('beforeprint', () => {
+        const nomeProdInput = document.getElementById('prod-name');
+        const printTitle = document.getElementById('prod-name-print');
+        if(nomeProdInput && printTitle) {
+            printTitle.innerText = nomeProdInput.value || "RELATÓRIO DE PRODUTO";
+        }
+    });
+
     window.novoProduto = () => {
         document.getElementById('prod-id').value = "";
         document.getElementById('prod-name').value = "";
@@ -906,7 +935,6 @@
         
         window.toggleAdsMode();
         window.toggleAdsProfile();
-        // Use 'manual' para preservar o preço carregado sem recalcular pelo slider
         window.atualizarPrecificacao('manual'); 
         window.calcularGeral(false);
     };
@@ -922,7 +950,10 @@
         });
         
         const slider = document.getElementById('margem-slider');
-        if(slider) slider.value = 15;
+        if(slider) {
+            slider.value = 15;
+            document.getElementById('label-margem').innerText = "15%";
+        }
         
         const perfil = document.getElementById('perfil-ads');
         if(perfil) perfil.selectedIndex = 0;
@@ -1075,6 +1106,7 @@
     
     function calcularPrecoFinal(precoBase) {
         const descCupom = window.getVal('desc-cupom') / 100;
+        // NOTE: This uses the input from section 1 for the main calculation, NOT the slider from section 3.
         const descRelampago = window.getVal('desc-relampago') / 100;
         
         // Ordem: Oferta Relâmpago -> Cupom Loja
@@ -1183,7 +1215,7 @@
     }
 
     const triggerUpdate = (source) => { window.atualizarPrecificacao(source); window.calcularGeral(false); };
-    ['custo', 'extra', 'taxa-fixa', 'comissao', 'imposto', 'devolucao', 'desc-cupom', 'desc-relampago'].forEach(id => {
+    ['custo', 'extra', 'taxa-fixa', 'comissao', 'imposto', 'devolucao', 'desc-cupom'].forEach(id => {
          const el = document.getElementById(id);
          if(el) el.addEventListener('input', () => {
              // If these change, update main calc AND sim
@@ -1191,6 +1223,17 @@
          });
     });
     
+    // desc-relampago input listener (Section 1) - ONLY syncs slider if slider hasn't been touched?
+    // User requested: "No campo 3... deverá aparecer o valor que coloquei... para servir de base".
+    // So if Section 1 changes, Section 3 slider should reflect it initially.
+    const descRelampagoInput = document.getElementById('desc-relampago');
+    if(descRelampagoInput) {
+        descRelampagoInput.addEventListener('input', (e) => {
+             // Syncs slider start point
+             triggerUpdate('slider'); // updates main calc
+        });
+    }
+
     const sliderEl = document.getElementById('margem-slider');
     if(sliderEl) sliderEl.addEventListener('input', () => triggerUpdate('slider'));
 
@@ -1246,7 +1289,7 @@
         window.safeSetText('preco-final-display', "R$ " + precoFinal.toFixed(2));
         
         const custoTotalTaxas = precoFinal * taxasVariaveis;
-        const lucroLiquido = precoFinal - custosFixosReais - custoTotalTaxas;
+        const lucroLiquido = Final - custosFixosReais - custoTotalTaxas;
         
         const elLucro = document.getElementById('lucro-real');
         if (elLucro) {
@@ -1362,185 +1405,6 @@
         tit.innerText = title; tit.className = `font-bold text-sm uppercase ${c[2]}`; txt.innerText = desc;
     }
 
-    function renderizarProvaReal(precoBase, custo, extra, fixo) {
-        const descCupom = window.getVal('desc-cupom'); const descRelampago = window.getVal('desc-relampago');
-        const comissao = window.getVal('comissao'); const imposto = window.getVal('imposto'); const devolucao = window.getVal('devolucao');
-        const valDescRelampago = precoBase * (descRelampago / 100); const precoAposRelampago = precoBase - valDescRelampago;
-        const valDescCupom = precoAposRelampago * (descCupom / 100); const precoFinal = precoAposRelampago - valDescCupom;
-        const valComissao = precoFinal * (comissao / 100); const valImposto = precoFinal * (imposto / 100); const valDevolucao = precoFinal * (devolucao / 100);
-        const custoTotal = custo + extra + fixo + valComissao + valImposto + valDevolucao; const lucroFinal = precoFinal - custoTotal;
-        const container = document.getElementById('breakdown-container');
-        if (!container) return;
-
-        const row = (lbl, pct, val, clr) => `<div class="flex justify-between items-center"><span class="${clr}">${lbl} ${pct?`(${pct}%)`:''}</span><span class="${clr}">${val < 0 ? '-' : ''} R$ ${Math.abs(val).toFixed(2)}</span></div>`;
-        
-        container.innerHTML = `
-            ${row('Preço de Venda (Base)', null, precoBase, 'font-bold text-gray-800')}
-            ${descRelampago > 0 ? row('(-) Oferta Relâmpago', (descRelampago).toFixed(0), -valDescRelampago, 'text-red-500') : ''}
-            ${descCupom > 0 ? row('(-) Cupom Loja', descCupom, -valDescCupom, 'text-red-500') : ''}
-            <div class="border-t border-dashed border-gray-300 my-2"></div>
-            ${row('(=) Preço Venda (Nota Fiscal)', null, precoFinal, 'font-bold text-blue-800')}
-            ${devolucao > 0 ? row('(-) Devolução Estimada', devolucao, -valDevolucao, 'text-red-500 font-bold') : ''}
-            ${row('(-) Custo do Produto', null, -custo, 'text-red-400')}
-            ${row('(-) Custos Extras', null, -extra, 'text-red-400')}
-            ${row('(-) Taxa Fixa Shopee', null, -fixo, 'text-red-400')}
-            ${row('(-) Comissão Shopee', comissao, -valComissao, 'text-red-400')}
-            ${row('(-) Impostos', imposto, -valImposto, 'text-red-400')}
-            <div class="border-t border-gray-300 mt-2 pt-2 flex justify-between font-black ${lucroFinal>=0?'text-green-600':'text-red-600'}">
-                <span>(=) LUCRO LÍQUIDO FINAL</span><span>R$ ${lucroFinal.toFixed(2)}</span>
-            </div>
-            <div class="text-right text-[10px] text-gray-400">Margem Real: ${((lucroFinal/precoFinal)*100).toFixed(2)}%</div>
-        `;
-    }
-
-    window.carregarProdutoAds = function(id) {
-        if (!id || !window.productsCache[id]) { window.selectedAdsProduct = null; document.getElementById('ads-product-info').classList.add('hidden'); return; }
-        const p = window.productsCache[id];
-        const pBase = parseFloat(p.precoVenda)||0; const custo = parseFloat(p.custo)||0; const extra = parseFloat(p.extra)||0; const fixo = parseFloat(p.taxaFixa)||0;
-        const descC = (parseFloat(p.descCupom)||0)/100; const descR = (parseFloat(p.descRelampago)||0)/100;
-        const pFinal = (pBase * (1-descR)) * (1-descC);
-        const comissao = (parseFloat(p.comissao)||0)/100; const imposto = (parseFloat(p.imposto)||0)/100; const devolucao = (parseFloat(p.devolucao)||0)/100;
-        const taxasTotal = pFinal * (comissao + imposto + devolucao);
-        const lucroUnit = pFinal - custo - extra - fixo - taxasTotal;
-        const margem = pFinal > 0 ? (lucroUnit / pFinal) * 100 : 0;
-        const targetCpa = (p.perfilAds === 'custom') ? (parseFloat(p.customCpa)||0) : (p.perfilAds == 0 ? 0 : Math.max(lucroUnit * 0.5, lucroUnit * parseFloat(p.perfilAds||0.5)));
-        const targetRoas = targetCpa > 0 ? (pFinal / targetCpa) : 0;
-        
-        window.selectedAdsProduct = { name: p.name, lucroUnit: lucroUnit, margem: margem, targetRoas: targetRoas, targetCpa: targetCpa };
-        
-        window.safeSetText('ads-info-margin', margem.toFixed(1) + "%");
-        window.safeSetText('ads-info-profit', "R$ " + lucroUnit.toFixed(2));
-        window.safeSetText('ads-info-roas', targetRoas.toFixed(2));
-        document.getElementById('ads-product-info').classList.remove('hidden');
-        analisarCampanha();
-    };
-
-    window.analisarCampanha = function() {
-        const impress = window.getVal('camp-impressions'); const clicks = window.getVal('camp-clicks'); const expense = window.getVal('camp-expense');
-        const gmv = window.getVal('camp-gmv'); const conversions = window.getVal('camp-conversions'); const items = window.getVal('camp-items');
-        const resultDiv = document.getElementById('camp-results');
-        
-        if(!resultDiv) return;
-        if(clicks === 0 && expense === 0) { resultDiv.classList.add('hidden'); return; }
-        resultDiv.classList.remove('hidden');
-
-        const roas = expense > 0 ? (gmv / expense) : 0;
-        const acos = gmv > 0 ? (expense / gmv) * 100 : 0;
-        const ctr = impress > 0 ? (clicks / impress) * 100 : 0;
-        const cr = clicks > 0 ? (conversions / clicks) * 100 : 0;
-        const cpa = conversions > 0 ? (expense / conversions) : 0;
-        const cpc = clicks > 0 ? (expense / clicks) : 0;
-
-        window.safeSetText('res-camp-roas', roas.toFixed(2));
-        window.safeSetText('res-camp-acos', acos.toFixed(1) + "%");
-        window.safeSetText('res-camp-ctr', ctr.toFixed(2) + "%");
-        window.safeSetText('res-camp-cr', cr.toFixed(2) + "%");
-        window.safeSetText('res-camp-cpa', "R$ " + cpa.toFixed(2));
-        window.safeSetText('res-camp-cpc', "R$ " + cpc.toFixed(2));
-        window.safeSetText('res-camp-items', items);
-
-        const profitBox = document.getElementById('camp-profit-box');
-        const compTable = document.getElementById('comp-analysis-container');
-        const compBody = document.getElementById('comp-analysis-body');
-        const diagText = document.getElementById('comp-diagnostic-text');
-        const verdictEl = document.getElementById('camp-verdict');
-
-        if (window.selectedAdsProduct) {
-            const quantitySold = items > 0 ? items : conversions;
-            const netCampaignProfit = (quantitySold * window.selectedAdsProduct.lucroUnit) - expense;
-            
-            const profitEl = document.getElementById('res-camp-profit');
-            if (profitEl) {
-                profitEl.innerText = "R$ " + netCampaignProfit.toFixed(2);
-                profitEl.className = netCampaignProfit >= 0 ? "text-2xl font-black text-green-600" : "text-2xl font-black text-red-600";
-            }
-            window.safeSetText('res-camp-profit-desc', `${quantitySold} itens x R$ ${window.selectedAdsProduct.lucroUnit.toFixed(2)} (lucro unit) - R$ ${expense.toFixed(2)} (ads)`);
-            
-            if(profitBox) profitBox.classList.remove('hidden');
-
-            const targetCpa = window.selectedAdsProduct.targetCpa;
-            const targetRoas = window.selectedAdsProduct.targetRoas;
-            const targetConv = targetCpa > 0 ? (cpc / targetCpa) * 100 : 0;
-            const maxCpc = targetCpa * (cr / 100);
-
-            const row = (name, target, actual, isGood, goodTxt, badTxt) => `
-                <tr class="bg-white border-b hover:bg-gray-50">
-                    <td class="px-4 py-2 font-medium text-gray-900">${name}</td>
-                    <td class="px-4 py-2 text-gray-500">${target}</td>
-                    <td class="px-4 py-2 font-bold ${isGood ? 'text-green-600' : 'text-red-600'}">${actual}</td>
-                    <td class="px-4 py-2 text-center text-xs">
-                        <span class="${isGood ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} px-2 py-0.5 rounded-full">
-                            ${isGood ? goodTxt : badTxt}
-                        </span>
-                    </td>
-                </tr>
-            `;
-
-            let rows = "";
-            rows += row('ROAS', `> ${targetRoas.toFixed(2)}`, roas.toFixed(2), roas >= targetRoas, 'Bom', 'Baixo');
-            rows += row('CPA', `< R$ ${targetCpa.toFixed(2)}`, `R$ ${cpa.toFixed(2)}`, cpa <= targetCpa, 'Bom', 'Alto');
-            rows += row('CPC (Ideal)', `< R$ ${maxCpc.toFixed(2)}`, `R$ ${cpc.toFixed(2)}`, cpc <= maxCpc, 'Eficiente', 'Caro');
-            rows += row('Conv. (Nec.)', `> ${targetConv.toFixed(1)}%`, `${cr.toFixed(1)}%`, cr >= targetConv, 'Ótimo', 'Baixa');
-
-            if(compBody) compBody.innerHTML = rows;
-
-            let diagnosis = "";
-            if (cpa > targetCpa) {
-                diagnosis = `<strong class="text-red-700">🔴 ANÁLISE TÉCNICA: CAMPANHA INEFICIENTE</strong><br>`;
-                diagnosis += `<div class="mt-2 text-gray-700 text-xs space-y-1">`;
-                if (cpc > maxCpc) {
-                    diagnosis += `• <b>CPC Inflacionado:</b> O leilão está caro (R$ ${cpc.toFixed(2)}). Para viabilizar, seu CTR precisa subir urgente. Teste novas capas.`;
-                }
-                if (cr < targetConv) {
-                    diagnosis += `• <b>Conversão Crítica:</b> Apenas ${cr.toFixed(2)}% compram. O tráfego chega e sai. Melhore descrição, provas sociais ou revise se o preço está competitivo.`;
-                }
-                if (acos > window.selectedAdsProduct.margem) {
-                     diagnosis += `• <b>ACOS Explosivo:</b> Você gasta ${acos.toFixed(1)}% da venda em ads, mas sua margem é ${window.selectedAdsProduct.margem.toFixed(1)}%. Prejuízo garantido.`;
-                }
-                diagnosis += `</div>`;
-            } else {
-                diagnosis = `
-                    <strong class="text-green-700">🟢 ANÁLISE TÉCNICA: CAMPANHA ESCALÁVEL</strong><br>
-                    <div class="mt-1 text-gray-600 text-xs">
-                    Métricas saudáveis. O CPA (R$ ${cpa.toFixed(2)}) permite lucro. <br>
-                    <b>Próximo passo:</b> Aumente o orçamento diário em 20% a cada 3 dias para escalar sem perder a eficiência (ROAS).
-                    </div>
-                `;
-            }
-            if(diagText) diagText.innerHTML = diagnosis;
-            if(compTable) compTable.classList.remove('hidden');
-
-             if (netCampaignProfit < 0) {
-                 if(verdictEl) {
-                     verdictEl.innerText = `PREJUÍZO OPERACIONAL: A campanha queimou R$ ${Math.abs(netCampaignProfit).toFixed(2)}. Pause palavras-chave amplas ou reduza o teto de lance.`;
-                     verdictEl.className = "text-xs text-red-600 leading-relaxed font-bold";
-                 }
-             } else {
-                 if(verdictEl) {
-                     verdictEl.innerText = "LUCRO OPERACIONAL: O produto se paga. Foque em manter o ROAS estável enquanto aumenta o volume.";
-                     verdictEl.className = "text-xs text-green-600 leading-relaxed font-bold";
-                 }
-             }
-
-        } else {
-            if(profitBox) profitBox.classList.add('hidden');
-            if(compTable) compTable.classList.add('hidden');
-            
-            if(verdictEl) {
-                if(acos > 40) {
-                    verdictEl.innerText = "Atenção Crítica: O custo do anúncio está consumindo mais de 40% da receita. Verifique margem.";
-                    verdictEl.className = "text-xs text-red-600 leading-relaxed font-bold";
-                } else if (roas < 3) {
-                    verdictEl.innerText = "Alerta: ROAS baixo (< 3). Cuidado com prejuízo.";
-                    verdictEl.className = "text-xs text-orange-600 leading-relaxed font-bold";
-                } else {
-                     verdictEl.innerText = "Saudável: Métricas dentro de parâmetros aceitáveis.";
-                     verdictEl.className = "text-xs text-green-600 leading-relaxed font-bold";
-                }
-            }
-        }
-    }
-    
     // Função de impressão com nome de arquivo e escopo de aba
     window.imprimirRelatorio = function() {
         const nomeProdInput = document.getElementById('prod-name');
