@@ -41,7 +41,7 @@
             #auth-status-container, #firebase-help, .fa-print, .fa-sign-out-alt, 
             input[type=range], #btn-delete, #btn-save, .fa-plus, .fa-save, .fa-trash-alt, .fa-eraser,
             #ads-saved-products, .fa-chevron-down, .action-bar, #dash-search-container,
-            #prod-name { /* Oculta o input original na impressão */
+            #prod-name-label, #prod-name { 
                 display: none !important; 
             }
 
@@ -50,6 +50,23 @@
                 transform: scale(0.95);
                 transform-origin: top center;
                 overflow: visible;
+            }
+
+            /* Forçar visibilidade do nome do produto APENAS no print */
+            #prod-name-print {
+                display: block !important;
+                width: 100% !important;
+                white-space: normal !important;
+                word-break: break-all !important; 
+                overflow-wrap: break-word !important;
+                margin-bottom: 10px !important;
+            }
+            
+            /* Ajuste do container pai para garantir largura total na impressão */
+            #prod-name-container {
+                display: block !important;
+                width: 100% !important;
+                flex: none !important;
             }
 
             .shopee-gradient { 
@@ -202,12 +219,12 @@
                 </div>
 
                 <div class="flex flex-col md:flex-row gap-3 mb-4">
-                    <div class="flex-grow">
-                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide print:hidden">Nome do Produto</label>
-                        <!-- Input visível na tela, oculto no print -->
+                    <div class="flex-grow" id="prod-name-container">
+                        <label id="prod-name-label" class="text-[10px] font-bold text-gray-500 uppercase tracking-wide print:hidden">Nome do Produto</label>
+                        <!-- Input para digitar -->
                         <input type="text" id="prod-name" placeholder="Ex: Tenis_Corrida" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold outline-none focus:border-orange-500 uppercase transition-all">
-                        <!-- Div visível apenas no print -->
-                        <div id="prod-name-print" class="hidden print:block text-2xl font-black uppercase text-gray-800 border-b-2 border-orange-500 pb-1 mb-2"></div>
+                        <!-- Elemento EXCLUSIVO para impressão (com quebra de linha forçada) -->
+                        <div id="prod-name-print" class="hidden text-xl font-black uppercase text-gray-800 border-b-2 border-orange-500 pb-1 mb-2 break-all whitespace-normal leading-tight"></div>
                         <input type="hidden" id="prod-id">
                     </div>
                     <div class="flex items-end gap-2 no-print">
@@ -372,14 +389,10 @@
                         </div>
                     </div>
                 </div>
-
-                <button onclick="calcularGeral(true)" class="w-full py-4 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:bg-gray-800 transform active:scale-95 transition-all flex justify-center items-center gap-2 mt-4 no-print">
-                    <i class="fas fa-calculator text-yellow-400"></i> CALCULAR VIABILIDADE
-                </button>
             </div>
 
             <!-- RESULTADOS -->
-            <div id="results-area" class="hidden space-y-6 animate-fade-in border-t-2 border-dashed border-gray-200 pt-6">
+            <div id="results-area" class="space-y-6 animate-fade-in border-t-2 border-dashed border-gray-200 pt-6">
                 
                 <div id="ads-metrics-wrapper">
                     <div class="grid grid-cols-2 gap-4 mb-4">
@@ -420,7 +433,7 @@
                 </div>
 
                 <!-- CONTAINER DE SIMULAÇÃO DE OFERTA (CUSTOM + TABELA) -->
-                <div id="organic-simulation-wrapper" class="hidden mt-6 bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+                <div id="organic-simulation-wrapper" class="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
                     <div class="flex items-center gap-2 mb-3 pb-2 border-b border-yellow-200">
                         <i class="fas fa-bolt text-yellow-600 text-sm"></i>
                         <h2 class="text-sm font-bold text-yellow-700 uppercase">Simulação de Oferta Relâmpago (+1% a +10%)</h2>
@@ -659,6 +672,9 @@
         if (el) el.innerText = text;
     };
 
+    // Variáveis Globais de Elementos (Definidas no topo para garantir acesso)
+    let margemSlider = null;
+
     // 2. AUTH SYSTEM
     const initAuth = async () => {};
     initAuth();
@@ -787,6 +803,24 @@
         });
     }
 
+    // LISTENER PARA IMPRESSÃO AUTOMÁTICA
+    window.addEventListener('beforeprint', () => {
+        const nomeProdInput = document.getElementById('prod-name');
+        const printTitle = document.getElementById('prod-name-print');
+        if(nomeProdInput && printTitle) {
+            printTitle.innerText = nomeProdInput.value || "RELATÓRIO DE PRODUTO";
+        }
+    });
+    
+    // Inicialização automática dos cálculos ao carregar
+    window.addEventListener('load', () => {
+         setTimeout(() => {
+             if(typeof window.calcularGeral === 'function') {
+                 window.calcularGeral(false);
+             }
+         }, 500);
+    });
+
     window.novoProduto = () => {
         document.getElementById('prod-id').value = "";
         document.getElementById('prod-name').value = "";
@@ -799,7 +833,7 @@
         document.getElementById('preco-venda').value = "";
         document.getElementById('extra').value = "0.00";
         document.getElementById('devolucao').value = "0";
-        
+        document.getElementById('desc-relampago').value = "0";
         window.atualizarPrecificacao('slider');
     };
 
@@ -901,12 +935,12 @@
         }
         
         if(data.margem) {
-             document.getElementById('label-margem').innerText = data.margem + "%";
+             const label = document.getElementById('label-margem');
+             if(label) label.innerText = data.margem + "%";
         }
         
         window.toggleAdsMode();
         window.toggleAdsProfile();
-        // Use 'manual' para preservar o preço carregado sem recalcular pelo slider
         window.atualizarPrecificacao('manual'); 
         window.calcularGeral(false);
     };
@@ -914,7 +948,6 @@
     window.limparCalculadora = () => {
         if(!confirm("Tem certeza que deseja limpar todos os campos da calculadora?")) return;
         
-        // Usar função segura que busca elementos atuais
         const inputsToClear = ['custo', 'extra', 'taxa-fixa', 'comissao', 'imposto', 'desc-relampago', 'desc-cupom', 'devolucao', 'preco-venda', 'ads-input', 'custom-cpa', 'prod-name', 'prod-id'];
         inputsToClear.forEach(id => {
             const el = document.getElementById(id);
@@ -922,7 +955,10 @@
         });
         
         const slider = document.getElementById('margem-slider');
-        if(slider) slider.value = 15;
+        if(slider) {
+            slider.value = 15;
+            document.getElementById('label-margem').innerText = "15%";
+        }
         
         const perfil = document.getElementById('perfil-ads');
         if(perfil) perfil.selectedIndex = 0;
@@ -1075,6 +1111,7 @@
     
     function calcularPrecoFinal(precoBase) {
         const descCupom = window.getVal('desc-cupom') / 100;
+        // NOTE: This uses the input from section 1 for the main calculation, NOT the slider from section 3.
         const descRelampago = window.getVal('desc-relampago') / 100;
         
         // Ordem: Oferta Relâmpago -> Cupom Loja
@@ -1191,6 +1228,17 @@
          });
     });
     
+    // desc-relampago input listener (Section 1) - ONLY syncs slider if slider hasn't been touched?
+    // User requested: "No campo 3... deverá aparecer o valor que coloquei... para servir de base".
+    // So if Section 1 changes, Section 3 slider should reflect it initially.
+    const descRelampagoInput = document.getElementById('desc-relampago');
+    if(descRelampagoInput) {
+        descRelampagoInput.addEventListener('input', (e) => {
+             // Syncs slider start point
+             triggerUpdate('slider'); // updates main calc
+        });
+    }
+
     const sliderEl = document.getElementById('margem-slider');
     if(sliderEl) sliderEl.addEventListener('input', () => triggerUpdate('slider'));
 
@@ -1323,7 +1371,7 @@
         window.safeSetText('res-roas-breakeven', "ROAS: " + roasBreakeven.toFixed(2));
         window.safeSetText('res-acos-breakeven', "ACOS: " + acosBreakeven.toFixed(1) + "%");
 
-        renderizarProvaReal(precoBase, custo, extra, fixo);
+        window.renderizarProvaReal(precoBase, custo, extra, fixo);
         const resArea = document.getElementById('results-area');
         if(resArea) {
             resArea.classList.remove('hidden');
@@ -1362,13 +1410,34 @@
         tit.innerText = title; tit.className = `font-bold text-sm uppercase ${c[2]}`; txt.innerText = desc;
     }
 
-    function renderizarProvaReal(precoBase, custo, extra, fixo) {
-        const descCupom = window.getVal('desc-cupom'); const descRelampago = window.getVal('desc-relampago');
+    // MAKE THIS GLOBAL SO simularRelampago CAN CALL IT
+    window.renderizarProvaReal = function(precoBase, custo, extra, fixo, customRelampagoPct = null) {
+        const descCupom = window.getVal('desc-cupom'); 
+        
+        // Use custom percentage if provided (from simulation), otherwise use saved input value
+        let descRelampago = 0;
+        if (customRelampagoPct !== null) {
+             descRelampago = customRelampagoPct;
+        } else {
+             descRelampago = window.getVal('desc-relampago') / 100;
+        }
+
         const comissao = window.getVal('comissao'); const imposto = window.getVal('imposto'); const devolucao = window.getVal('devolucao');
-        const valDescRelampago = precoBase * (descRelampago / 100); const precoAposRelampago = precoBase - valDescRelampago;
-        const valDescCupom = precoAposRelampago * (descCupom / 100); const precoFinal = precoAposRelampago - valDescCupom;
-        const valComissao = precoFinal * (comissao / 100); const valImposto = precoFinal * (imposto / 100); const valDevolucao = precoFinal * (devolucao / 100);
-        const custoTotal = custo + extra + fixo + valComissao + valImposto + valDevolucao; const lucroFinal = precoFinal - custoTotal;
+        
+        const valDescRelampago = precoBase * descRelampago; 
+        const precoAposRelampago = precoBase - valDescRelampago;
+        const valDescCupom = precoAposRelampago * (descCupom / 100); 
+        const precoFinal = precoAposRelampago - valDescCupom;
+        
+        const valComissao = precoFinal * (comissao / 100); 
+        const valImposto = precoFinal * (imposto / 100); 
+        const valDevolucao = precoFinal * (devolucao / 100);
+        
+        const custoTotal = custo + extra + fixo + valComissao + valImposto + valDevolucao; 
+        const lucroFinal = precoFinal - custoTotal;
+        
+        const margemFinal = precoFinal > 0 ? (lucroFinal / precoFinal) * 100 : 0;
+        
         const container = document.getElementById('breakdown-container');
         if (!container) return;
 
@@ -1376,7 +1445,7 @@
         
         container.innerHTML = `
             ${row('Preço de Venda (Base)', null, precoBase, 'font-bold text-gray-800')}
-            ${descRelampago > 0 ? row('(-) Oferta Relâmpago', (descRelampago).toFixed(0), -valDescRelampago, 'text-red-500') : ''}
+            ${descRelampago > 0 ? row('(-) Oferta Relâmpago', (descRelampago*100).toFixed(0), -valDescRelampago, 'text-red-500') : ''}
             ${descCupom > 0 ? row('(-) Cupom Loja', descCupom, -valDescCupom, 'text-red-500') : ''}
             <div class="border-t border-dashed border-gray-300 my-2"></div>
             ${row('(=) Preço Venda (Nota Fiscal)', null, precoFinal, 'font-bold text-blue-800')}
@@ -1389,7 +1458,7 @@
             <div class="border-t border-gray-300 mt-2 pt-2 flex justify-between font-black ${lucroFinal>=0?'text-green-600':'text-red-600'}">
                 <span>(=) LUCRO LÍQUIDO FINAL</span><span>R$ ${lucroFinal.toFixed(2)}</span>
             </div>
-            <div class="text-right text-[10px] text-gray-400">Margem Real: ${((lucroFinal/precoFinal)*100).toFixed(2)}%</div>
+            <div class="text-right text-[10px] text-gray-400">Margem Real: ${margemFinal.toFixed(2)}%</div>
         `;
     }
 
