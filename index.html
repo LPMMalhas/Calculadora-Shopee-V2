@@ -46,7 +46,7 @@
 
             #app-content { 
                 box-shadow: none; max-width: 100%; width: 100%; margin: 0; border-radius: 0;
-                transform: scale(0.80); /* Redução para 0.80 para garantir que a nova seção caiba */
+                transform: scale(0.85); /* Redução para garantir fit */
                 transform-origin: top center;
                 overflow: visible;
             }
@@ -364,84 +364,95 @@
                 </button>
             </div>
 
-            <!-- 3. ESTRATÉGIA OFERTA RELÂMPAGO -->
-            <div class="space-y-4">
-                <div class="flex items-center gap-2 mb-2 border-b border-gray-100 pb-2">
-                    <div class="bg-yellow-100 p-1.5 rounded-lg text-yellow-600"><i class="fas fa-bolt text-sm"></i></div>
-                    <h2 class="text-sm font-bold text-gray-700 uppercase">3. Simulação Oferta Relâmpago</h2>
-                </div>
-                <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                         <div class="space-y-2">
-                            <div class="flex justify-between">
-                                <label class="text-[9px] font-bold text-yellow-700 uppercase">Desconto Simulado</label>
-                                <span id="lbl-slider-relampago" class="text-[9px] font-black text-yellow-800">0%</span>
-                            </div>
-                            <input type="range" id="slider-relampago" min="0" max="90" value="0" class="w-full h-2 bg-yellow-200 rounded-lg appearance-none cursor-pointer accent-yellow-600">
-                        </div>
-                        <div class="grid grid-cols-2 gap-2 text-center">
-                            <div>
-                                <span class="block text-[8px] font-bold text-yellow-600 uppercase">Preço na Oferta</span>
-                                <span id="display-preco-relampago" class="text-lg font-black text-yellow-900">R$ 0,00</span>
-                            </div>
-                            <div>
-                                <span class="block text-[8px] font-bold text-yellow-600 uppercase">Lucro Simulado</span>
-                                <span id="display-lucro-relampago" class="text-lg font-black text-green-700">R$ 0,00</span>
-                            </div>
-                            <div class="col-span-2">
-                                <span class="block text-[8px] font-bold text-yellow-600 uppercase">Margem Simulada</span>
-                                <span id="display-margem-relampago" class="text-sm font-bold text-gray-700">0%</span>
-                            </div>
-                        </div>
-                    </div>
-                    <p class="text-[8px] text-yellow-600 mt-2 text-center italic">*Esta simulação não altera os dados salvos do produto acima.</p>
-                </div>
-                
-                <button onclick="calcularGeral(true)" class="w-full py-4 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:bg-gray-800 transform active:scale-95 transition-all flex justify-center items-center gap-2 mt-4 no-print">
-                    <i class="fas fa-calculator text-yellow-400"></i> CALCULAR VIABILIDADE
-                </button>
-            </div>
-
             <!-- RESULTADOS -->
             <div id="results-area" class="hidden space-y-6 animate-fade-in border-t-2 border-dashed border-gray-200 pt-6">
                 
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 shadow-sm text-center flex flex-col justify-center">
-                        <span class="block text-[9px] uppercase font-bold text-gray-400 mb-1">Breakeven (Zero a Zero)</span>
-                        <span id="res-roas-breakeven" class="text-xl font-black text-gray-600">ROAS: 0.00</span>
-                        <span id="res-acos-breakeven" class="block text-[10px] font-bold text-gray-400 mt-1">ACOS: 0%</span>
+                <div id="ads-metrics-wrapper">
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 shadow-sm text-center flex flex-col justify-center">
+                            <span class="block text-[9px] uppercase font-bold text-gray-400 mb-1">Breakeven (Zero a Zero)</span>
+                            <span id="res-roas-breakeven" class="text-xl font-black text-gray-600">ROAS: 0.00</span>
+                            <span id="res-acos-breakeven" class="block text-[10px] font-bold text-gray-400 mt-1">ACOS: 0%</span>
+                        </div>
+                        <div class="bg-green-50 p-3 rounded-xl border border-green-200 shadow-sm text-center relative flex flex-col justify-center">
+                            <div class="absolute -top-2 -right-2 bg-green-500 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold no-print">META</div>
+                            <span class="block text-[9px] uppercase font-bold text-green-600 mb-1">Ideal (Meta)</span>
+                            <span id="res-roas-ideal" class="text-2xl font-black text-green-600">ROAS: 0.00</span>
+                            <span id="res-acos-ideal" class="block text-[10px] font-bold text-green-600 mt-1">ACOS: 0%</span>
+                        </div>
                     </div>
-                    <div class="bg-green-50 p-3 rounded-xl border border-green-200 shadow-sm text-center relative flex flex-col justify-center">
-                        <div class="absolute -top-2 -right-2 bg-green-500 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold no-print">META</div>
-                        <span class="block text-[9px] uppercase font-bold text-green-600 mb-1">Ideal (Meta)</span>
-                        <span id="res-roas-ideal" class="text-2xl font-black text-green-600">ROAS: 0.00</span>
-                        <span id="res-acos-ideal" class="block text-[10px] font-bold text-green-600 mt-1">ACOS: 0%</span>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm text-center">
+                            <span class="block text-[10px] uppercase font-bold text-purple-600 mb-1">Custo por Conversão (CPA)</span>
+                            <span id="res-cpa" class="text-xl font-black text-purple-700">R$ 0,00</span>
+                            <span id="res-cpa-restante" class="block text-[10px] font-bold text-gray-400 mt-1">Sobra: R$ 0,00</span>
+                        </div>
+                        <!-- CARD DINÂMICO -->
+                        <div class="bg-orange-50 p-3 rounded-xl border border-orange-200 shadow-sm text-center">
+                            <span id="lbl-res-secondary" class="block text-[10px] uppercase font-bold text-orange-600 mb-1">Taxa de Conversão Mínima</span>
+                            <span id="res-secondary-val" class="text-2xl font-black text-orange-600">0.00%</span>
+                            <span id="res-secondary-sub" class="block text-[10px] font-bold text-orange-500 mt-1">Custo: R$ 0,00</span>
+                        </div>
+                    </div>
+
+                    <div id="veredito-container" class="p-4 rounded-xl border-l-4 shadow-sm flex items-start gap-3 bg-gray-50 border-gray-300 mt-4">
+                        <div id="veredito-icon" class="text-2xl mt-1 text-gray-400"><i class="fas fa-info-circle"></i></div>
+                        <div>
+                            <h3 id="veredito-titulo" class="font-bold text-sm uppercase text-gray-700">Aguardando...</h3>
+                            <p id="veredito-texto" class="text-xs text-gray-600 mt-1">Preencha os dados.</p>
+                        </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm text-center">
-                        <span class="block text-[10px] uppercase font-bold text-purple-600 mb-1">Custo por Conversão (CPA)</span>
-                        <span id="res-cpa" class="text-xl font-black text-purple-700">R$ 0,00</span>
-                        <span id="res-cpa-restante" class="block text-[10px] font-bold text-gray-400 mt-1">Sobra: R$ 0,00</span>
+                <!-- CONTAINER DE SIMULAÇÃO DE OFERTA (CUSTOM + TABELA) -->
+                <div id="organic-simulation-wrapper" class="hidden mt-6 bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+                    <div class="flex items-center gap-2 mb-3 pb-2 border-b border-yellow-200">
+                        <i class="fas fa-bolt text-yellow-600 text-sm"></i>
+                        <h2 class="text-sm font-bold text-yellow-700 uppercase">Simulação de Oferta Relâmpago (+1% a +10%)</h2>
                     </div>
-                    <!-- CARD DINÂMICO -->
-                    <div class="bg-orange-50 p-3 rounded-xl border border-orange-200 shadow-sm text-center">
-                        <span id="lbl-res-secondary" class="block text-[10px] uppercase font-bold text-orange-600 mb-1">Taxa de Conversão Mínima</span>
-                        <span id="res-secondary-val" class="text-2xl font-black text-orange-600">0.00%</span>
-                        <span id="res-secondary-sub" class="block text-[10px] font-bold text-orange-500 mt-1">Custo: R$ 0,00</span>
+                    
+                    <!-- INPUT DE SIMULAÇÃO PERSONALIZADA -->
+                    <div class="mb-4 bg-white p-3 rounded-lg border border-yellow-100 flex items-center justify-between shadow-sm">
+                        <div>
+                             <label class="block text-[9px] font-bold text-gray-500 uppercase mb-1">Teste um Desconto (%)</label>
+                             <input type="number" id="sim-custom-pct" placeholder="Ex: 50" class="w-24 px-3 py-1 bg-yellow-50 border border-yellow-300 rounded text-center font-black text-yellow-800 outline-none focus:ring-2 focus:ring-yellow-400" oninput="simularDescontoPersonalizado()">
+                        </div>
+                        <div class="text-right flex gap-4 text-xs">
+                             <div>
+                                 <span class="block text-[8px] text-gray-400 uppercase">Novo Preço</span>
+                                 <span id="sim-custom-price" class="font-bold text-gray-700">R$ 0,00</span>
+                             </div>
+                             <div>
+                                 <span class="block text-[8px] text-gray-400 uppercase">Lucro Líq.</span>
+                                 <span id="sim-custom-profit" class="font-bold">R$ 0,00</span>
+                             </div>
+                             <div>
+                                 <span class="block text-[8px] text-gray-400 uppercase">Margem</span>
+                                 <span id="sim-custom-margin" class="font-bold">0%</span>
+                             </div>
+                        </div>
                     </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse bg-white rounded-lg overflow-hidden border border-gray-200">
+                            <thead class="bg-gray-50 text-[10px] text-gray-500 uppercase">
+                                <tr>
+                                    <th class="px-3 py-2 text-center">Desc. Total</th>
+                                    <th class="px-3 py-2 text-right">Novo Preço</th>
+                                    <th class="px-3 py-2 text-right">Lucro Líq.</th>
+                                    <th class="px-3 py-2 text-center">Margem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="organic-simulation-body" class="text-xs">
+                                <!-- JS Populates -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-[8px] text-yellow-600 mt-2 text-center italic">*Esta simulação não altera os dados salvos do produto acima.</p>
                 </div>
 
-                <div id="veredito-container" class="p-4 rounded-xl border-l-4 shadow-sm flex items-start gap-3 bg-gray-50 border-gray-300">
-                    <div id="veredito-icon" class="text-2xl mt-1 text-gray-400"><i class="fas fa-info-circle"></i></div>
-                    <div>
-                        <h3 id="veredito-titulo" class="font-bold text-sm uppercase text-gray-700">Aguardando...</h3>
-                        <p id="veredito-texto" class="text-xs text-gray-600 mt-1">Preencha os dados.</p>
-                    </div>
-                </div>
-
-                <div class="space-y-3">
+                <div class="space-y-3 mt-4">
                     <div class="flex items-center gap-2 mb-2">
                         <div class="bg-blue-100 p-1 rounded text-blue-600 no-print"><i class="fas fa-list-ol text-xs"></i></div>
                         <h4 class="text-xs font-bold text-gray-700 uppercase">Prova Real (Detalhamento)</h4>
@@ -777,17 +788,7 @@
         document.getElementById('preco-venda').value = "";
         document.getElementById('extra').value = "0.00";
         document.getElementById('devolucao').value = "0";
-        
-        // Reset Relampago
-        const descR = document.getElementById('desc-relampago');
-        if(descR) descR.value = "0";
-        const sliderR = document.getElementById('slider-relampago');
-        if(sliderR) sliderR.value = 0;
-        document.getElementById('lbl-slider-relampago').innerText = "0%";
-        document.getElementById('display-preco-relampago').innerText = "R$ 0,00";
-        document.getElementById('display-lucro-relampago').innerText = "R$ 0,00";
-        document.getElementById('display-margem-relampago').innerText = "0%";
-        
+        document.getElementById('desc-relampago').value = "0";
         window.atualizarPrecificacao('slider');
     };
 
@@ -888,14 +889,6 @@
             if(el) el.value = val !== undefined ? val : (key === 'extra' || key === 'devolucao' ? 0 : el.value);
         }
         
-        // Sync Relampago Slider
-        const sliderR = document.getElementById('slider-relampago');
-        if(sliderR && data.descRelampago) {
-            // Start simulation at 0 to show contrast
-            sliderR.value = 0; 
-            document.getElementById('lbl-slider-relampago').innerText = "0%";
-        }
-        
         if(data.margem) {
              document.getElementById('label-margem').innerText = data.margem + "%";
         }
@@ -918,19 +911,7 @@
         });
         
         const slider = document.getElementById('margem-slider');
-        if(slider) {
-            slider.value = 15;
-            document.getElementById('label-margem').innerText = "15%";
-        }
-        
-        const sliderR = document.getElementById('slider-relampago');
-        if(sliderR) {
-            sliderR.value = 0;
-            document.getElementById('lbl-slider-relampago').innerText = "0%";
-            document.getElementById('display-preco-relampago').innerText = "R$ 0,00";
-            document.getElementById('display-lucro-relampago').innerText = "R$ 0,00";
-            document.getElementById('display-margem-relampago').innerText = "0%";
-        }
+        if(slider) slider.value = 15;
         
         const perfil = document.getElementById('perfil-ads');
         if(perfil) perfil.selectedIndex = 0;
@@ -1083,7 +1064,6 @@
     
     function calcularPrecoFinal(precoBase) {
         const descCupom = window.getVal('desc-cupom') / 100;
-        // NOTE: This uses the input from section 1 for the main calculation, NOT the slider from section 3.
         const descRelampago = window.getVal('desc-relampago') / 100;
         
         // Ordem: Oferta Relâmpago -> Cupom Loja
@@ -1091,43 +1071,91 @@
         return aposRelampago * (1 - descCupom);
     }
     
-    // Independent function for Section 3 Simulation
-    function simularRelampago() {
+    // NEW: Function to render the Organic Simulation Table
+    window.renderizarSimulacaoOrganica = function(precoBase, custo, extra, fixo) { 
+        const descCupom = window.getVal('desc-cupom') / 100;
+        const descRelampagoBase = window.getVal('desc-relampago'); // Integer percentage
+        
+        const comissao = window.getVal('comissao') / 100;
+        const imposto = window.getVal('imposto') / 100;
+        const devolucao = window.getVal('devolucao') / 100;
+        
+        const fixedCosts = custo + extra + fixo;
+
+        let html = '';
+        
+        // Loop for simulation: Base + 1% to Base + 10%
+        for(let i = 1; i <= 10; i++) {
+            const simDescPct = descRelampagoBase + i; 
+            const simDescDecimal = simDescPct / 100;
+            
+            // Calculate Scenario CORRECTLY as per user request:
+            // 1. Discount Lightning Deal from Base Price
+            const priceOffer = precoBase * (1 - simDescDecimal);
+            // 2. Discount Shop Coupon from resulting price
+            const priceFinal = priceOffer * (1 - descCupom);
+            
+            // Tax is on final price
+            const totalTaxVal = priceFinal * (comissao + imposto + devolucao);
+            
+            // Profit
+            const profit = priceFinal - fixedCosts - totalTaxVal;
+            const margin = priceFinal > 0 ? (profit / priceFinal) * 100 : 0;
+            
+            const profitClass = profit >= 0 ? "text-green-600" : "text-red-600";
+            const marginClass = margin > 0 ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800";
+
+            html += `
+            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                <td class="px-3 py-2 text-center text-gray-700 font-bold">${simDescPct.toFixed(0)}%</td>
+                <td class="px-3 py-2 text-right text-gray-600">R$ ${priceFinal.toFixed(2)}</td> <!-- Changed to priceFinal per user request -->
+                <td class="px-3 py-2 text-right font-bold ${profitClass}">R$ ${profit.toFixed(2)}</td>
+                <td class="px-3 py-2 text-center">
+                    <span class="px-2 py-1 rounded-full text-[10px] font-bold ${marginClass}">${margin.toFixed(1)}%</span>
+                </td>
+            </tr>
+            `;
+        }
+        
+        const tbody = document.getElementById('organic-simulation-body');
+        if(tbody) tbody.innerHTML = html;
+        
+        // Make sure the wrapper is visible
+        const wrapper = document.getElementById('organic-simulation-wrapper');
+        if(wrapper) wrapper.classList.remove('hidden');
+    }
+    
+    // CUSTOM SIMULATION HANDLER
+    window.simularDescontoPersonalizado = function() {
+        const inputVal = parseFloat(document.getElementById('sim-custom-pct').value) || 0;
         const precoBase = window.getVal('preco-venda');
         const descCupom = window.getVal('desc-cupom') / 100;
-        const sliderVal = parseFloat(document.getElementById('slider-relampago').value);
-        const descSimulado = sliderVal / 100;
         
-        // Calculate Simulated Price
-        const precoOferta = precoBase * (1 - descSimulado);
-        const precoFinalSimulado = precoOferta * (1 - descCupom);
+        // Similar calculation to loop
+        const simDescDecimal = inputVal / 100;
+        const priceOffer = precoBase * (1 - simDescDecimal);
+        const priceFinal = priceOffer * (1 - descCupom);
         
-        // Calculate Simulated Profit
         const custo = window.getVal('custo');
         const extra = window.getVal('extra');
         const fixo = window.getVal('taxa-fixa');
-        const comissao = window.getVal('comissao')/100;
-        const imposto = window.getVal('imposto')/100;
-        const devolucao = window.getVal('devolucao')/100;
+        const comissao = window.getVal('comissao') / 100;
+        const imposto = window.getVal('imposto') / 100;
+        const devolucao = window.getVal('devolucao') / 100;
         
-        const taxasTotal = precoFinalSimulado * (comissao + imposto + devolucao);
-        const lucroSimulado = precoFinalSimulado - custo - extra - fixo - taxasTotal;
-        const margemSimulada = precoFinalSimulado > 0 ? (lucroSimulado / precoFinalSimulado) * 100 : 0;
+        const totalTaxVal = priceFinal * (comissao + imposto + devolucao);
+        const profit = priceFinal - (custo + extra + fixo) - totalTaxVal;
+        const margin = priceFinal > 0 ? (profit / priceFinal) * 100 : 0;
         
-        // Update Section 3 UI only
-        window.safeSetText('lbl-slider-relampago', sliderVal + "%");
-        window.safeSetText('display-preco-relampago', "R$ " + precoFinalSimulado.toFixed(2));
-        
-        const elLucro = document.getElementById('display-lucro-relampago');
-        if(elLucro) {
-            elLucro.innerText = "R$ " + lucroSimulado.toFixed(2);
-            elLucro.className = lucroSimulado >= 0 ? "text-lg font-black text-green-700" : "text-lg font-black text-red-700";
+        window.safeSetText('sim-custom-price', "R$ " + priceFinal.toFixed(2));
+        const profitEl = document.getElementById('sim-custom-profit');
+        if(profitEl) {
+            profitEl.innerText = "R$ " + profit.toFixed(2);
+            profitEl.className = profit >= 0 ? "font-bold text-green-600" : "font-bold text-red-600";
         }
-        window.safeSetText('display-margem-relampago', margemSimulada.toFixed(2) + "%");
-
-        // Trigger Breakdown Update with Simulated Discount
-        window.renderizarProvaReal(precoBase, custo, extra, fixo, descSimulado);
+        window.safeSetText('sim-custom-margin', margin.toFixed(1) + "%");
     }
+
 
     window.toggleAdsMode = function() {
         const mode = document.getElementById('ads-mode').value;
@@ -1144,7 +1172,7 @@
     }
 
     const triggerUpdate = (source) => { window.atualizarPrecificacao(source); window.calcularGeral(false); };
-    ['custo', 'extra', 'taxa-fixa', 'comissao', 'imposto', 'devolucao', 'desc-cupom'].forEach(id => {
+    ['custo', 'extra', 'taxa-fixa', 'comissao', 'imposto', 'devolucao', 'desc-cupom', 'desc-relampago'].forEach(id => {
          const el = document.getElementById(id);
          if(el) el.addEventListener('input', () => {
              // If these change, update main calc AND sim
@@ -1152,32 +1180,8 @@
          });
     });
     
-    // desc-relampago input listener (Section 1) - ONLY syncs slider if slider hasn't been touched?
-    // User requested: "No campo 3... deverá aparecer o valor que coloquei... para servir de base".
-    // So if Section 1 changes, Section 3 slider should reflect it initially.
-    const descRelampagoInput = document.getElementById('desc-relampago');
-    if(descRelampagoInput) {
-        descRelampagoInput.addEventListener('input', (e) => {
-             const val = e.target.value || 0;
-             const slider = document.getElementById('slider-relampago');
-             if(slider) {
-                slider.value = val;
-                simularRelampago(); 
-             }
-             triggerUpdate('slider'); // updates main calc
-        });
-    }
-
     const sliderEl = document.getElementById('margem-slider');
     if(sliderEl) sliderEl.addEventListener('input', () => triggerUpdate('slider'));
-    
-    // Slider Relampago Listener - Only calls simularRelampago
-    const sliderRelampago = document.getElementById('slider-relampago');
-    if(sliderRelampago) {
-        sliderRelampago.addEventListener('input', (e) => {
-             simularRelampago();
-        });
-    }
 
     ['ads-input', 'custom-cpa'].forEach(id => {
          const el = document.getElementById(id);
@@ -1238,9 +1242,6 @@
             elLucro.innerText = "R$ " + lucroLiquido.toFixed(2);
             elLucro.className = lucroLiquido < 0 ? "text-xl font-black text-red-600" : "text-xl font-black text-green-600";
         }
-        
-        // Also update simulation when main values change
-        simularRelampago();
     };
 
     window.calcularGeral = function(scroll = true) {
@@ -1264,20 +1265,25 @@
         
         let displayMainVal = "", displayMainLabel = "", displayMainSub = "";
         
+        // --- ALWAYS SHOW SIMULATION ---
+        window.renderizarSimulacaoOrganica(precoBase, custo, extra, fixo);
+
+        // Ads Metrics Logic
         if (perfilAds == 0) {
             displayMainLabel = "Estratégia Orgânica"; displayMainVal = "Sem Ads"; displayMainSub = "Foco em SEO";
             checkVereditoOrganic(lucroUnit);
-        }
-        else if (adsMode === 'cpc' || adsMode === 'none') {
-            const cpc = adsMode === 'none' ? 0.11 : adsInput;
-            const convMin = cpaAlvo > 0 ? (cpc / cpaAlvo) * 100 : 0;
-            displayMainLabel = "Taxa de Conversão Mínima"; displayMainVal = convMin.toFixed(2) + "%"; displayMainSub = "Para CPC R$ " + cpc.toFixed(2);
-            checkVereditoConv(lucroUnit, convMin);
         } else {
-            const conv = adsInput;
-            const cpcMax = cpaAlvo * (conv / 100);
-            displayMainLabel = "CPC Máximo Permitido"; displayMainVal = "R$ " + cpcMax.toFixed(2); displayMainSub = `Com conversão de ${conv}%`;
-            checkVereditoCPC(lucroUnit, cpcMax);
+            if (adsMode === 'cpc' || adsMode === 'none') {
+                const cpc = adsMode === 'none' ? 0.11 : adsInput;
+                const convMin = cpaAlvo > 0 ? (cpc / cpaAlvo) * 100 : 0;
+                displayMainLabel = "Taxa de Conversão Mínima"; displayMainVal = convMin.toFixed(2) + "%"; displayMainSub = "Para CPC R$ " + cpc.toFixed(2);
+                checkVereditoConv(lucroUnit, convMin);
+            } else {
+                const conv = adsInput;
+                const cpcMax = cpaAlvo * (conv / 100);
+                displayMainLabel = "CPC Máximo Permitido"; displayMainVal = "R$ " + cpcMax.toFixed(2); displayMainSub = `Com conversão de ${conv}%`;
+                checkVereditoCPC(lucroUnit, cpcMax);
+            }
         }
 
         const roasBreakeven = (lucroUnit > 0) ? (precoFinal / lucroUnit) : 0;
