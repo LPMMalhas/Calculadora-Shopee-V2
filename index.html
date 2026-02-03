@@ -204,7 +204,7 @@
 
                 <div class="flex flex-col md:flex-row gap-3 mb-4">
                     <div class="flex-grow">
-                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Nome do Produto</label>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide print:hidden">Nome do Produto</label>
                         <input type="text" id="prod-name" placeholder="Ex: Tenis_Corrida" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold outline-none focus:border-orange-500 uppercase transition-all">
                         <input type="hidden" id="prod-id">
                     </div>
@@ -370,6 +370,10 @@
                         </div>
                     </div>
                 </div>
+
+                <button onclick="calcularGeral(true)" class="w-full py-4 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:bg-gray-800 transform active:scale-95 transition-all flex justify-center items-center gap-2 mt-4 no-print">
+                    <i class="fas fa-calculator text-yellow-400"></i> CALCULAR VIABILIDADE
+                </button>
             </div>
 
             <!-- RESULTADOS -->
@@ -796,7 +800,7 @@
         document.getElementById('preco-venda').value = "";
         document.getElementById('extra').value = "0.00";
         document.getElementById('devolucao').value = "0";
-        
+        document.getElementById('desc-relampago').value = "0";
         window.atualizarPrecificacao('slider');
     };
 
