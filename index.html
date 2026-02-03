@@ -672,9 +672,6 @@
         if (el) el.innerText = text;
     };
 
-    // Variáveis Globais de Elementos (Definidas no topo para garantir acesso)
-    let margemSlider = null;
-
     // 2. AUTH SYSTEM
     const initAuth = async () => {};
     initAuth();
@@ -808,7 +805,8 @@
         const nomeProdInput = document.getElementById('prod-name');
         const printTitle = document.getElementById('prod-name-print');
         if(nomeProdInput && printTitle) {
-            printTitle.innerText = nomeProdInput.value || "RELATÓRIO DE PRODUTO";
+            let val = nomeProdInput.value || "RELATÓRIO DE PRODUTO";
+            printTitle.innerText = val.replace(/\s+/g, '_');
         }
     });
     
