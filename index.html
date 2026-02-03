@@ -665,12 +665,158 @@
     window.selectedAdsProduct = null;
 
     // Helper functions global
-    window.getVal = (id) => parseFloat(document.getElementById(id).value) || 0;
+    window.getVal = (id) => {
+        const el = document.getElementById(id);
+        return el ? parseFloat(el.value) || 0 : 0;
+    };
     
     window.safeSetText = (id, text) => {
         const el = document.getElementById(id);
         if (el) el.innerText = text;
     };
+
+    // Variáveis Globais de Elementos (Definidas no topo para garantir acesso)
+    let margemSlider = null;
+
+    // DEFINIÇÃO DAS FUNÇÕES AUXILIARES (GLOBALMENTE DISPONÍVEIS)
+    
+    window.calcularPrecoFinal = function(precoBase) {
+        const descCupom = window.getVal('desc-cupom') / 100;
+        const descRelampago = window.getVal('desc-relampago') / 100;
+        const aposRelampago = precoBase * (1 - descRelampago);
+        return aposRelampago * (1 - descCupom);
+    };
+    
+    window.renderizarSimulacaoOrganica = function(precoBase, custo, extra, fixo) { 
+        const descCupom = window.getVal('desc-cupom') / 100;
+        const descRelampagoBase = window.getVal('desc-relampago'); 
+        const comissao = window.getVal('comissao') / 100;
+        const imposto = window.getVal('imposto') / 100;
+        const devolucao = window.getVal('devolucao') / 100;
+        const fixedCosts = custo + extra + fixo;
+
+        let html = '';
+        for(let i = 1; i <= 10; i++) {
+            const simDescPct = descRelampagoBase + i; 
+            const simDescDecimal = simDescPct / 100;
+            const priceOffer = precoBase * (1 - simDescDecimal);
+            const priceFinal = priceOffer * (1 - descCupom);
+            const totalTaxVal = priceFinal * (comissao + imposto + devolucao);
+            const profit = priceFinal - fixedCosts - totalTaxVal;
+            const margin = priceFinal > 0 ? (profit / priceFinal) * 100 : 0;
+            const profitClass = profit >= 0 ? "text-green-600" : "text-red-600";
+            const marginClass = margin > 0 ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800";
+
+            html += `
+            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                <td class="px-3 py-2 text-center text-gray-700 font-bold">${simDescPct.toFixed(0)}%</td>
+                <td class="px-3 py-2 text-right text-gray-600">R$ ${priceFinal.toFixed(2)}</td>
+                <td class="px-3 py-2 text-right font-bold ${profitClass}">R$ ${profit.toFixed(2)}</td>
+                <td class="px-3 py-2 text-center">
+                    <span class="px-2 py-1 rounded-full text-[10px] font-bold ${marginClass}">${margin.toFixed(1)}%</span>
+                </td>
+            </tr>`;
+        }
+        const tbody = document.getElementById('organic-simulation-body');
+        if(tbody) tbody.innerHTML = html;
+        const wrapper = document.getElementById('organic-simulation-wrapper');
+        if(wrapper) wrapper.classList.remove('hidden');
+    };
+
+    window.simularDescontoPersonalizado = function() {
+        const inputVal = parseFloat(document.getElementById('sim-custom-pct').value) || 0;
+        const precoBase = window.getVal('preco-venda');
+        const descCupom = window.getVal('desc-cupom') / 100;
+        const simDescDecimal = inputVal / 100;
+        const priceOffer = precoBase * (1 - simDescDecimal);
+        const priceFinal = priceOffer * (1 - descCupom);
+        const custo = window.getVal('custo');
+        const extra = window.getVal('extra');
+        const fixo = window.getVal('taxa-fixa');
+        const comissao = window.getVal('comissao') / 100;
+        const imposto = window.getVal('imposto') / 100;
+        const devolucao = window.getVal('devolucao') / 100;
+        const totalTaxVal = priceFinal * (comissao + imposto + devolucao);
+        const profit = priceFinal - (custo + extra + fixo) - totalTaxVal;
+        const margin = priceFinal > 0 ? (profit / priceFinal) * 100 : 0;
+        window.safeSetText('sim-custom-price', "R$ " + priceFinal.toFixed(2));
+        const profitEl = document.getElementById('sim-custom-profit');
+        if(profitEl) {
+            profitEl.innerText = "R$ " + profit.toFixed(2);
+            profitEl.className = profit >= 0 ? "font-bold text-green-600" : "font-bold text-red-600";
+        }
+        window.safeSetText('sim-custom-margin', margin.toFixed(1) + "%");
+    };
+
+    window.renderizarProvaReal = function(precoBase, custo, extra, fixo) {
+        const descCupom = window.getVal('desc-cupom'); 
+        const descRelampago = window.getVal('desc-relampago') / 100;
+        const comissao = window.getVal('comissao'); const imposto = window.getVal('imposto'); const devolucao = window.getVal('devolucao');
+        const valDescRelampago = precoBase * descRelampago; 
+        const precoAposRelampago = precoBase - valDescRelampago;
+        const valDescCupom = precoAposRelampago * (descCupom / 100); 
+        const precoFinal = precoAposRelampago - valDescCupom;
+        const valComissao = precoFinal * (comissao / 100); 
+        const valImposto = precoFinal * (imposto / 100); 
+        const valDevolucao = precoFinal * (devolucao / 100);
+        const custoTotal = custo + extra + fixo + valComissao + valImposto + valDevolucao; 
+        const lucroFinal = precoFinal - custoTotal;
+        const margemFinal = precoFinal > 0 ? (lucroFinal / precoFinal) * 100 : 0;
+        
+        const container = document.getElementById('breakdown-container');
+        if (!container) return;
+
+        const row = (lbl, pct, val, clr) => `<div class="flex justify-between items-center"><span class="${clr}">${lbl} ${pct?`(${pct}%)`:''}</span><span class="${clr}">${val < 0 ? '-' : ''} R$ ${Math.abs(val).toFixed(2)}</span></div>`;
+        
+        container.innerHTML = `
+            ${row('Preço de Venda (Base)', null, precoBase, 'font-bold text-gray-800')}
+            ${descRelampago > 0 ? row('(-) Oferta Relâmpago', (descRelampago*100).toFixed(0), -valDescRelampago, 'text-red-500') : ''}
+            ${descCupom > 0 ? row('(-) Cupom Loja', descCupom, -valDescCupom, 'text-red-500') : ''}
+            <div class="border-t border-dashed border-gray-300 my-2"></div>
+            ${row('(=) Preço Venda (Nota Fiscal)', null, precoFinal, 'font-bold text-blue-800')}
+            ${devolucao > 0 ? row('(-) Devolução Estimada', devolucao, -valDevolucao, 'text-red-500 font-bold') : ''}
+            ${row('(-) Custo do Produto', null, -custo, 'text-red-400')}
+            ${row('(-) Custos Extras', null, -extra, 'text-red-400')}
+            ${row('(-) Taxa Fixa Shopee', null, -fixo, 'text-red-400')}
+            ${row('(-) Comissão Shopee', comissao, -valComissao, 'text-red-400')}
+            ${row('(-) Impostos', imposto, -valImposto, 'text-red-400')}
+            <div class="border-t border-gray-300 mt-2 pt-2 flex justify-between font-black ${lucroFinal>=0?'text-green-600':'text-red-600'}">
+                <span>(=) LUCRO LÍQUIDO FINAL</span><span>R$ ${lucroFinal.toFixed(2)}</span>
+            </div>
+            <div class="text-right text-[10px] text-gray-400">Margem Real: ${margemFinal.toFixed(2)}%</div>
+        `;
+    };
+
+    window.checkVereditoConv = function(lucroUnit, convMin) {
+        if (lucroUnit <= 0) setVeredito('red', 'PREJUÍZO', 'Margem negativa.');
+        else if (convMin > 3.0) setVeredito('red', 'DIFÍCIL', `Precisa de ${convMin.toFixed(1)}% conv.`);
+        else if (convMin < 1.0) setVeredito('green', 'MUITO VIÁVEL', `Meta fácil: ${convMin.toFixed(1)}%.`);
+        else setVeredito('blue', 'VIÁVEL', `Meta de ${convMin.toFixed(1)}% ok.`);
+    };
+
+    window.checkVereditoCPC = function(lucroUnit, cpcMax) {
+        if (lucroUnit <= 0) setVeredito('red', 'PREJUÍZO', 'Margem negativa.');
+        else if (cpcMax < 0.11) setVeredito('red', 'INVIÁVEL', `Teto R$ ${cpcMax.toFixed(2)} < Mínimo.`);
+        else setVeredito('blue', 'VIÁVEL', `Teto de R$ ${cpcMax.toFixed(2)} ok.`);
+    };
+
+    window.checkVereditoOrganic = function(lucroUnit) {
+        setVeredito(lucroUnit <= 0 ? 'red' : 'green', lucroUnit <= 0 ? 'PREJUÍZO' : 'LUCRO ORGÂNICO', lucroUnit <= 0 ? 'Margem negativa.' : 'Sem custos de ads.');
+    };
+
+    function setVeredito(color, title, desc) {
+        const cont = document.getElementById('veredito-container');
+        const icon = document.getElementById('veredito-icon');
+        const tit = document.getElementById('veredito-titulo');
+        const txt = document.getElementById('veredito-texto');
+        if (!cont || !icon || !tit || !txt) return;
+        const colors = { red: ['border-red-500', 'bg-red-50', 'text-red-500'], green: ['border-green-500', 'bg-green-50', 'text-green-500'], blue: ['border-blue-500', 'bg-blue-50', 'text-blue-500'] };
+        const c = colors[color];
+        cont.className = `p-4 rounded-xl border-l-4 shadow-sm flex items-start gap-3 ${c[1]} ${c[0]}`;
+        icon.className = `text-2xl mt-1 ${c[2]}`;
+        icon.innerHTML = color === 'red' ? '<i class="fas fa-exclamation-triangle"></i>' : '<i class="fas fa-check-circle"></i>';
+        tit.innerText = title; tit.className = `font-bold text-sm uppercase ${c[2]}`; txt.innerText = desc;
+    }
 
     // 2. AUTH SYSTEM
     const initAuth = async () => {};
@@ -1107,102 +1253,6 @@
         return document.getElementById('margem-slider');
     }
     
-    function calcularPrecoFinal(precoBase) {
-        const descCupom = window.getVal('desc-cupom') / 100;
-        // NOTE: This uses the input from section 1 for the main calculation, NOT the slider from section 3.
-        const descRelampago = window.getVal('desc-relampago') / 100;
-        
-        // Ordem: Oferta Relâmpago -> Cupom Loja
-        const aposRelampago = precoBase * (1 - descRelampago);
-        return aposRelampago * (1 - descCupom);
-    }
-    
-    // NEW: Function to render the Organic Simulation Table
-    window.renderizarSimulacaoOrganica = function(precoBase, custo, extra, fixo) { 
-        const descCupom = window.getVal('desc-cupom') / 100;
-        const descRelampagoBase = window.getVal('desc-relampago'); // Integer percentage
-        
-        const comissao = window.getVal('comissao') / 100;
-        const imposto = window.getVal('imposto') / 100;
-        const devolucao = window.getVal('devolucao') / 100;
-        
-        const fixedCosts = custo + extra + fixo;
-
-        let html = '';
-        
-        // Loop for simulation: Base + 1% to Base + 10%
-        for(let i = 1; i <= 10; i++) {
-            const simDescPct = descRelampagoBase + i; 
-            const simDescDecimal = simDescPct / 100;
-            
-            // Calculate Scenario CORRECTLY as per user request:
-            // 1. Discount Lightning Deal from Base Price
-            const priceOffer = precoBase * (1 - simDescDecimal);
-            // 2. Discount Shop Coupon from resulting price
-            const priceFinal = priceOffer * (1 - descCupom);
-            
-            // Tax is on final price
-            const totalTaxVal = priceFinal * (comissao + imposto + devolucao);
-            
-            // Profit
-            const profit = priceFinal - fixedCosts - totalTaxVal;
-            const margin = priceFinal > 0 ? (profit / priceFinal) * 100 : 0;
-            
-            const profitClass = profit >= 0 ? "text-green-600" : "text-red-600";
-            const marginClass = margin > 0 ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800";
-
-            html += `
-            <tr class="border-b border-gray-100 hover:bg-gray-50">
-                <td class="px-3 py-2 text-center text-gray-700 font-bold">${simDescPct.toFixed(0)}%</td>
-                <td class="px-3 py-2 text-right text-gray-600">R$ ${priceFinal.toFixed(2)}</td> <!-- Changed to priceFinal per user request -->
-                <td class="px-3 py-2 text-right font-bold ${profitClass}">R$ ${profit.toFixed(2)}</td>
-                <td class="px-3 py-2 text-center">
-                    <span class="px-2 py-1 rounded-full text-[10px] font-bold ${marginClass}">${margin.toFixed(1)}%</span>
-                </td>
-            </tr>
-            `;
-        }
-        
-        const tbody = document.getElementById('organic-simulation-body');
-        if(tbody) tbody.innerHTML = html;
-        
-        // Make sure the wrapper is visible
-        const wrapper = document.getElementById('organic-simulation-wrapper');
-        if(wrapper) wrapper.classList.remove('hidden');
-    }
-    
-    // CUSTOM SIMULATION HANDLER
-    window.simularDescontoPersonalizado = function() {
-        const inputVal = parseFloat(document.getElementById('sim-custom-pct').value) || 0;
-        const precoBase = window.getVal('preco-venda');
-        const descCupom = window.getVal('desc-cupom') / 100;
-        
-        // Similar calculation to loop
-        const simDescDecimal = inputVal / 100;
-        const priceOffer = precoBase * (1 - simDescDecimal);
-        const priceFinal = priceOffer * (1 - descCupom);
-        
-        const custo = window.getVal('custo');
-        const extra = window.getVal('extra');
-        const fixo = window.getVal('taxa-fixa');
-        const comissao = window.getVal('comissao') / 100;
-        const imposto = window.getVal('imposto') / 100;
-        const devolucao = window.getVal('devolucao') / 100;
-        
-        const totalTaxVal = priceFinal * (comissao + imposto + devolucao);
-        const profit = priceFinal - (custo + extra + fixo) - totalTaxVal;
-        const margin = priceFinal > 0 ? (profit / priceFinal) * 100 : 0;
-        
-        window.safeSetText('sim-custom-price', "R$ " + priceFinal.toFixed(2));
-        const profitEl = document.getElementById('sim-custom-profit');
-        if(profitEl) {
-            profitEl.innerText = "R$ " + profit.toFixed(2);
-            profitEl.className = profit >= 0 ? "font-bold text-green-600" : "font-bold text-red-600";
-        }
-        window.safeSetText('sim-custom-margin', margin.toFixed(1) + "%");
-    }
-
-
     window.toggleAdsMode = function() {
         const mode = document.getElementById('ads-mode').value;
         const label = document.getElementById('lbl-ads-input');
@@ -1288,7 +1338,7 @@
         }
 
         const precoBase = window.getVal('preco-venda');
-        const precoFinal = calcularPrecoFinal(precoBase);
+        const precoFinal = window.calcularPrecoFinal(precoBase);
         window.safeSetText('preco-final-display', "R$ " + precoFinal.toFixed(2));
         
         const custoTotalTaxas = precoFinal * taxasVariaveis;
@@ -1311,7 +1361,7 @@
         const adsInput = window.getVal('ads-input');
         const perfilAds = document.getElementById('perfil-ads').value;
 
-        const precoFinal = calcularPrecoFinal(precoBase);
+        const precoFinal = window.calcularPrecoFinal(precoBase);
         const custoTotalTaxas = precoFinal * taxasVariaveis;
         const lucroUnit = precoFinal - (custo + extra + fixo) - custoTotalTaxas;
         
@@ -1328,18 +1378,18 @@
         // Ads Metrics Logic
         if (perfilAds == 0) {
             displayMainLabel = "Estratégia Orgânica"; displayMainVal = "Sem Ads"; displayMainSub = "Foco em SEO";
-            checkVereditoOrganic(lucroUnit);
+            window.checkVereditoOrganic(lucroUnit);
         } else {
             if (adsMode === 'cpc' || adsMode === 'none') {
                 const cpc = adsMode === 'none' ? 0.11 : adsInput;
                 const convMin = cpaAlvo > 0 ? (cpc / cpaAlvo) * 100 : 0;
                 displayMainLabel = "Taxa de Conversão Mínima"; displayMainVal = convMin.toFixed(2) + "%"; displayMainSub = "Para CPC R$ " + cpc.toFixed(2);
-                checkVereditoConv(lucroUnit, convMin);
+                window.checkVereditoConv(lucroUnit, convMin);
             } else {
                 const conv = adsInput;
                 const cpcMax = cpaAlvo * (conv / 100);
                 displayMainLabel = "CPC Máximo Permitido"; displayMainVal = "R$ " + cpcMax.toFixed(2); displayMainSub = `Com conversão de ${conv}%`;
-                checkVereditoCPC(lucroUnit, cpcMax);
+                window.checkVereditoCPC(lucroUnit, cpcMax);
             }
         }
 
@@ -1376,237 +1426,6 @@
             if(scroll) resArea.scrollIntoView({ behavior: 'smooth' });
         }
     };
-
-    function checkVereditoOrganic(lucroUnit) {
-        setVeredito(lucroUnit <= 0 ? 'red' : 'green', lucroUnit <= 0 ? 'PREJUÍZO' : 'LUCRO ORGÂNICO', lucroUnit <= 0 ? 'Margem negativa.' : 'Sem custos de ads.');
-    }
-    function checkVereditoConv(lucroUnit, convMin) {
-        if (lucroUnit <= 0) setVeredito('red', 'PREJUÍZO', 'Margem negativa.');
-        else if (convMin > 3.0) setVeredito('red', 'DIFÍCIL', `Precisa de ${convMin.toFixed(1)}% conv.`);
-        else if (convMin < 1.0) setVeredito('green', 'MUITO VIÁVEL', `Meta fácil: ${convMin.toFixed(1)}%.`);
-        else setVeredito('blue', 'VIÁVEL', `Meta de ${convMin.toFixed(1)}% ok.`);
-    }
-    function checkVereditoCPC(lucroUnit, cpcMax) {
-        if (lucroUnit <= 0) setVeredito('red', 'PREJUÍZO', 'Margem negativa.');
-        else if (cpcMax < 0.11) setVeredito('red', 'INVIÁVEL', `Teto R$ ${cpcMax.toFixed(2)} < Mínimo.`);
-        else setVeredito('blue', 'VIÁVEL', `Teto de R$ ${cpcMax.toFixed(2)} ok.`);
-    }
-    
-    function setVeredito(color, title, desc) {
-        const cont = document.getElementById('veredito-container');
-        const icon = document.getElementById('veredito-icon');
-        const tit = document.getElementById('veredito-titulo');
-        const txt = document.getElementById('veredito-texto');
-        
-        if (!cont || !icon || !tit || !txt) return;
-
-        const colors = { red: ['border-red-500', 'bg-red-50', 'text-red-500'], green: ['border-green-500', 'bg-green-50', 'text-green-500'], blue: ['border-blue-500', 'bg-blue-50', 'text-blue-500'] };
-        const c = colors[color];
-        cont.className = `p-4 rounded-xl border-l-4 shadow-sm flex items-start gap-3 ${c[1]} ${c[0]}`;
-        icon.className = `text-2xl mt-1 ${c[2]}`;
-        icon.innerHTML = color === 'red' ? '<i class="fas fa-exclamation-triangle"></i>' : '<i class="fas fa-check-circle"></i>';
-        tit.innerText = title; tit.className = `font-bold text-sm uppercase ${c[2]}`; txt.innerText = desc;
-    }
-
-    // MAKE THIS GLOBAL SO simularRelampago CAN CALL IT
-    window.renderizarProvaReal = function(precoBase, custo, extra, fixo, customRelampagoPct = null) {
-        const descCupom = window.getVal('desc-cupom'); 
-        
-        // Use custom percentage if provided (from simulation), otherwise use saved input value
-        let descRelampago = 0;
-        if (customRelampagoPct !== null) {
-             descRelampago = customRelampagoPct;
-        } else {
-             descRelampago = window.getVal('desc-relampago') / 100;
-        }
-
-        const comissao = window.getVal('comissao'); const imposto = window.getVal('imposto'); const devolucao = window.getVal('devolucao');
-        
-        const valDescRelampago = precoBase * descRelampago; 
-        const precoAposRelampago = precoBase - valDescRelampago;
-        const valDescCupom = precoAposRelampago * (descCupom / 100); 
-        const precoFinal = precoAposRelampago - valDescCupom;
-        
-        const valComissao = precoFinal * (comissao / 100); 
-        const valImposto = precoFinal * (imposto / 100); 
-        const valDevolucao = precoFinal * (devolucao / 100);
-        
-        const custoTotal = custo + extra + fixo + valComissao + valImposto + valDevolucao; 
-        const lucroFinal = precoFinal - custoTotal;
-        
-        const margemFinal = precoFinal > 0 ? (lucroFinal / precoFinal) * 100 : 0;
-        
-        const container = document.getElementById('breakdown-container');
-        if (!container) return;
-
-        const row = (lbl, pct, val, clr) => `<div class="flex justify-between items-center"><span class="${clr}">${lbl} ${pct?`(${pct}%)`:''}</span><span class="${clr}">${val < 0 ? '-' : ''} R$ ${Math.abs(val).toFixed(2)}</span></div>`;
-        
-        container.innerHTML = `
-            ${row('Preço de Venda (Base)', null, precoBase, 'font-bold text-gray-800')}
-            ${descRelampago > 0 ? row('(-) Oferta Relâmpago', (descRelampago*100).toFixed(0), -valDescRelampago, 'text-red-500') : ''}
-            ${descCupom > 0 ? row('(-) Cupom Loja', descCupom, -valDescCupom, 'text-red-500') : ''}
-            <div class="border-t border-dashed border-gray-300 my-2"></div>
-            ${row('(=) Preço Venda (Nota Fiscal)', null, precoFinal, 'font-bold text-blue-800')}
-            ${devolucao > 0 ? row('(-) Devolução Estimada', devolucao, -valDevolucao, 'text-red-500 font-bold') : ''}
-            ${row('(-) Custo do Produto', null, -custo, 'text-red-400')}
-            ${row('(-) Custos Extras', null, -extra, 'text-red-400')}
-            ${row('(-) Taxa Fixa Shopee', null, -fixo, 'text-red-400')}
-            ${row('(-) Comissão Shopee', comissao, -valComissao, 'text-red-400')}
-            ${row('(-) Impostos', imposto, -valImposto, 'text-red-400')}
-            <div class="border-t border-gray-300 mt-2 pt-2 flex justify-between font-black ${lucroFinal>=0?'text-green-600':'text-red-600'}">
-                <span>(=) LUCRO LÍQUIDO FINAL</span><span>R$ ${lucroFinal.toFixed(2)}</span>
-            </div>
-            <div class="text-right text-[10px] text-gray-400">Margem Real: ${margemFinal.toFixed(2)}%</div>
-        `;
-    }
-
-    window.carregarProdutoAds = function(id) {
-        if (!id || !window.productsCache[id]) { window.selectedAdsProduct = null; document.getElementById('ads-product-info').classList.add('hidden'); return; }
-        const p = window.productsCache[id];
-        const pBase = parseFloat(p.precoVenda)||0; const custo = parseFloat(p.custo)||0; const extra = parseFloat(p.extra)||0; const fixo = parseFloat(p.taxaFixa)||0;
-        const descC = (parseFloat(p.descCupom)||0)/100; const descR = (parseFloat(p.descRelampago)||0)/100;
-        const pFinal = (pBase * (1-descR)) * (1-descC);
-        const comissao = (parseFloat(p.comissao)||0)/100; const imposto = (parseFloat(p.imposto)||0)/100; const devolucao = (parseFloat(p.devolucao)||0)/100;
-        const taxasTotal = pFinal * (comissao + imposto + devolucao);
-        const lucroUnit = pFinal - custo - extra - fixo - taxasTotal;
-        const margem = pFinal > 0 ? (lucroUnit / pFinal) * 100 : 0;
-        const targetCpa = (p.perfilAds === 'custom') ? (parseFloat(p.customCpa)||0) : (p.perfilAds == 0 ? 0 : Math.max(lucroUnit * 0.5, lucroUnit * parseFloat(p.perfilAds||0.5)));
-        const targetRoas = targetCpa > 0 ? (pFinal / targetCpa) : 0;
-        
-        window.selectedAdsProduct = { name: p.name, lucroUnit: lucroUnit, margem: margem, targetRoas: targetRoas, targetCpa: targetCpa };
-        
-        window.safeSetText('ads-info-margin', margem.toFixed(1) + "%");
-        window.safeSetText('ads-info-profit', "R$ " + lucroUnit.toFixed(2));
-        window.safeSetText('ads-info-roas', targetRoas.toFixed(2));
-        document.getElementById('ads-product-info').classList.remove('hidden');
-        analisarCampanha();
-    };
-
-    window.analisarCampanha = function() {
-        const impress = window.getVal('camp-impressions'); const clicks = window.getVal('camp-clicks'); const expense = window.getVal('camp-expense');
-        const gmv = window.getVal('camp-gmv'); const conversions = window.getVal('camp-conversions'); const items = window.getVal('camp-items');
-        const resultDiv = document.getElementById('camp-results');
-        
-        if(!resultDiv) return;
-        if(clicks === 0 && expense === 0) { resultDiv.classList.add('hidden'); return; }
-        resultDiv.classList.remove('hidden');
-
-        const roas = expense > 0 ? (gmv / expense) : 0;
-        const acos = gmv > 0 ? (expense / gmv) * 100 : 0;
-        const ctr = impress > 0 ? (clicks / impress) * 100 : 0;
-        const cr = clicks > 0 ? (conversions / clicks) * 100 : 0;
-        const cpa = conversions > 0 ? (expense / conversions) : 0;
-        const cpc = clicks > 0 ? (expense / clicks) : 0;
-
-        window.safeSetText('res-camp-roas', roas.toFixed(2));
-        window.safeSetText('res-camp-acos', acos.toFixed(1) + "%");
-        window.safeSetText('res-camp-ctr', ctr.toFixed(2) + "%");
-        window.safeSetText('res-camp-cr', cr.toFixed(2) + "%");
-        window.safeSetText('res-camp-cpa', "R$ " + cpa.toFixed(2));
-        window.safeSetText('res-camp-cpc', "R$ " + cpc.toFixed(2));
-        window.safeSetText('res-camp-items', items);
-
-        const profitBox = document.getElementById('camp-profit-box');
-        const compTable = document.getElementById('comp-analysis-container');
-        const compBody = document.getElementById('comp-analysis-body');
-        const diagText = document.getElementById('comp-diagnostic-text');
-        const verdictEl = document.getElementById('camp-verdict');
-
-        if (window.selectedAdsProduct) {
-            const quantitySold = items > 0 ? items : conversions;
-            const netCampaignProfit = (quantitySold * window.selectedAdsProduct.lucroUnit) - expense;
-            
-            const profitEl = document.getElementById('res-camp-profit');
-            if (profitEl) {
-                profitEl.innerText = "R$ " + netCampaignProfit.toFixed(2);
-                profitEl.className = netCampaignProfit >= 0 ? "text-2xl font-black text-green-600" : "text-2xl font-black text-red-600";
-            }
-            window.safeSetText('res-camp-profit-desc', `${quantitySold} itens x R$ ${window.selectedAdsProduct.lucroUnit.toFixed(2)} (lucro unit) - R$ ${expense.toFixed(2)} (ads)`);
-            
-            if(profitBox) profitBox.classList.remove('hidden');
-
-            const targetCpa = window.selectedAdsProduct.targetCpa;
-            const targetRoas = window.selectedAdsProduct.targetRoas;
-            const targetConv = targetCpa > 0 ? (cpc / targetCpa) * 100 : 0;
-            const maxCpc = targetCpa * (cr / 100);
-
-            const row = (name, target, actual, isGood, goodTxt, badTxt) => `
-                <tr class="bg-white border-b hover:bg-gray-50">
-                    <td class="px-4 py-2 font-medium text-gray-900">${name}</td>
-                    <td class="px-4 py-2 text-gray-500">${target}</td>
-                    <td class="px-4 py-2 font-bold ${isGood ? 'text-green-600' : 'text-red-600'}">${actual}</td>
-                    <td class="px-4 py-2 text-center text-xs">
-                        <span class="${isGood ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} px-2 py-0.5 rounded-full">
-                            ${isGood ? goodTxt : badTxt}
-                        </span>
-                    </td>
-                </tr>
-            `;
-
-            let rows = "";
-            rows += row('ROAS', `> ${targetRoas.toFixed(2)}`, roas.toFixed(2), roas >= targetRoas, 'Bom', 'Baixo');
-            rows += row('CPA', `< R$ ${targetCpa.toFixed(2)}`, `R$ ${cpa.toFixed(2)}`, cpa <= targetCpa, 'Bom', 'Alto');
-            rows += row('CPC (Ideal)', `< R$ ${maxCpc.toFixed(2)}`, `R$ ${cpc.toFixed(2)}`, cpc <= maxCpc, 'Eficiente', 'Caro');
-            rows += row('Conv. (Nec.)', `> ${targetConv.toFixed(1)}%`, `${cr.toFixed(1)}%`, cr >= targetConv, 'Ótimo', 'Baixa');
-
-            if(compBody) compBody.innerHTML = rows;
-
-            let diagnosis = "";
-            if (cpa > targetCpa) {
-                diagnosis = `<strong class="text-red-700">🔴 ANÁLISE TÉCNICA: CAMPANHA INEFICIENTE</strong><br>`;
-                diagnosis += `<div class="mt-2 text-gray-700 text-xs space-y-1">`;
-                if (cpc > maxCpc) {
-                    diagnosis += `• <b>CPC Inflacionado:</b> O leilão está caro (R$ ${cpc.toFixed(2)}). Para viabilizar, seu CTR precisa subir urgente. Teste novas capas.`;
-                }
-                if (cr < targetConv) {
-                    diagnosis += `• <b>Conversão Crítica:</b> Apenas ${cr.toFixed(2)}% compram. O tráfego chega e sai. Melhore descrição, provas sociais ou revise se o preço está competitivo.`;
-                }
-                if (acos > window.selectedAdsProduct.margem) {
-                     diagnosis += `• <b>ACOS Explosivo:</b> Você gasta ${acos.toFixed(1)}% da venda em ads, mas sua margem é ${window.selectedAdsProduct.margem.toFixed(1)}%. Prejuízo garantido.`;
-                }
-                diagnosis += `</div>`;
-            } else {
-                diagnosis = `
-                    <strong class="text-green-700">🟢 ANÁLISE TÉCNICA: CAMPANHA ESCALÁVEL</strong><br>
-                    <div class="mt-1 text-gray-600 text-xs">
-                    Métricas saudáveis. O CPA (R$ ${cpa.toFixed(2)}) permite lucro. <br>
-                    <b>Próximo passo:</b> Aumente o orçamento diário em 20% a cada 3 dias para escalar sem perder a eficiência (ROAS).
-                    </div>
-                `;
-            }
-            if(diagText) diagText.innerHTML = diagnosis;
-            if(compTable) compTable.classList.remove('hidden');
-
-             if (netCampaignProfit < 0) {
-                 if(verdictEl) {
-                     verdictEl.innerText = `PREJUÍZO OPERACIONAL: A campanha queimou R$ ${Math.abs(netCampaignProfit).toFixed(2)}. Pause palavras-chave amplas ou reduza o teto de lance.`;
-                     verdictEl.className = "text-xs text-red-600 leading-relaxed font-bold";
-                 }
-             } else {
-                 if(verdictEl) {
-                     verdictEl.innerText = "LUCRO OPERACIONAL: O produto se paga. Foque em manter o ROAS estável enquanto aumenta o volume.";
-                     verdictEl.className = "text-xs text-green-600 leading-relaxed font-bold";
-                 }
-             }
-
-        } else {
-            if(profitBox) profitBox.classList.add('hidden');
-            if(compTable) compTable.classList.add('hidden');
-            
-            if(verdictEl) {
-                if(acos > 40) {
-                    verdictEl.innerText = "Atenção Crítica: O custo do anúncio está consumindo mais de 40% da receita. Verifique margem.";
-                    verdictEl.className = "text-xs text-red-600 leading-relaxed font-bold";
-                } else if (roas < 3) {
-                    verdictEl.innerText = "Alerta: ROAS baixo (< 3). Cuidado com prejuízo.";
-                    verdictEl.className = "text-xs text-orange-600 leading-relaxed font-bold";
-                } else {
-                     verdictEl.innerText = "Saudável: Métricas dentro de parâmetros aceitáveis.";
-                     verdictEl.className = "text-xs text-green-600 leading-relaxed font-bold";
-                }
-            }
-        }
-    }
     
     // Função de impressão com nome de arquivo e escopo de aba
     window.imprimirRelatorio = function() {
