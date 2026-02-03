@@ -33,7 +33,7 @@
                 background-color: white; 
                 -webkit-print-color-adjust: exact; 
                 print-color-adjust: exact;
-                font-size: 9px; 
+                font-size: 10px; 
             }
 
             /* Ocultar elementos de navegação e interação */
@@ -83,6 +83,7 @@
                 padding: 5px !important;
             }
             
+            /* QUEBRA DE PÁGINA */
             #organic-simulation-wrapper {
                 page-break-before: always;
                 margin-top: 20px !important;
@@ -371,6 +372,10 @@
                         </div>
                     </div>
                 </div>
+
+                <button onclick="calcularGeral(true)" class="w-full py-4 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:bg-gray-800 transform active:scale-95 transition-all flex justify-center items-center gap-2 mt-4 no-print">
+                    <i class="fas fa-calculator text-yellow-400"></i> CALCULAR VIABILIDADE
+                </button>
             </div>
 
             <!-- RESULTADOS -->
@@ -654,9 +659,6 @@
         if (el) el.innerText = text;
     };
 
-    // Variáveis Globais de Elementos (Definidas no topo para garantir acesso)
-    let margemSlider = null;
-
     // 2. AUTH SYSTEM
     const initAuth = async () => {};
     initAuth();
@@ -797,10 +799,6 @@
         document.getElementById('preco-venda').value = "";
         document.getElementById('extra').value = "0.00";
         document.getElementById('devolucao').value = "0";
-        
-        // Reset Relampago
-        const descR = document.getElementById('desc-relampago');
-        if(descR) descR.value = "0";
         
         window.atualizarPrecificacao('slider');
     };
@@ -1185,7 +1183,7 @@
     }
 
     const triggerUpdate = (source) => { window.atualizarPrecificacao(source); window.calcularGeral(false); };
-    ['custo', 'extra', 'taxa-fixa', 'comissao', 'imposto', 'devolucao', 'desc-cupom'].forEach(id => {
+    ['custo', 'extra', 'taxa-fixa', 'comissao', 'imposto', 'devolucao', 'desc-cupom', 'desc-relampago'].forEach(id => {
          const el = document.getElementById(id);
          if(el) el.addEventListener('input', () => {
              // If these change, update main calc AND sim
@@ -1193,16 +1191,6 @@
          });
     });
     
-    // desc-relampago input listener (Section 1) - ONLY syncs slider if slider hasn't been touched?
-    // User requested: "No campo 3... deverá aparecer o valor que coloquei... para servir de base".
-    // So if Section 1 changes, Section 3 slider should reflect it initially.
-    const descRelampagoInput = document.getElementById('desc-relampago');
-    if(descRelampagoInput) {
-        descRelampagoInput.addEventListener('input', (e) => {
-             triggerUpdate('slider'); // updates main calc
-        });
-    }
-
     const sliderEl = document.getElementById('margem-slider');
     if(sliderEl) sliderEl.addEventListener('input', () => triggerUpdate('slider'));
 
@@ -1374,34 +1362,13 @@
         tit.innerText = title; tit.className = `font-bold text-sm uppercase ${c[2]}`; txt.innerText = desc;
     }
 
-    // MAKE THIS GLOBAL SO simularRelampago CAN CALL IT
-    window.renderizarProvaReal = function(precoBase, custo, extra, fixo, customRelampagoPct = null) {
-        const descCupom = window.getVal('desc-cupom'); 
-        
-        // Use custom percentage if provided (from simulation), otherwise use saved input value
-        let descRelampago = 0;
-        if (customRelampagoPct !== null) {
-             descRelampago = customRelampagoPct;
-        } else {
-             descRelampago = window.getVal('desc-relampago') / 100;
-        }
-
+    function renderizarProvaReal(precoBase, custo, extra, fixo) {
+        const descCupom = window.getVal('desc-cupom'); const descRelampago = window.getVal('desc-relampago');
         const comissao = window.getVal('comissao'); const imposto = window.getVal('imposto'); const devolucao = window.getVal('devolucao');
-        
-        const valDescRelampago = precoBase * descRelampago; 
-        const precoAposRelampago = precoBase - valDescRelampago;
-        const valDescCupom = precoAposRelampago * (descCupom / 100); 
-        const precoFinal = precoAposRelampago - valDescCupom;
-        
-        const valComissao = precoFinal * (comissao / 100); 
-        const valImposto = precoFinal * (imposto / 100); 
-        const valDevolucao = precoFinal * (devolucao / 100);
-        
-        const custoTotal = custo + extra + fixo + valComissao + valImposto + valDevolucao; 
-        const lucroFinal = precoFinal - custoTotal;
-        
-        const margemFinal = precoFinal > 0 ? (lucroFinal / precoFinal) * 100 : 0;
-        
+        const valDescRelampago = precoBase * (descRelampago / 100); const precoAposRelampago = precoBase - valDescRelampago;
+        const valDescCupom = precoAposRelampago * (descCupom / 100); const precoFinal = precoAposRelampago - valDescCupom;
+        const valComissao = precoFinal * (comissao / 100); const valImposto = precoFinal * (imposto / 100); const valDevolucao = precoFinal * (devolucao / 100);
+        const custoTotal = custo + extra + fixo + valComissao + valImposto + valDevolucao; const lucroFinal = precoFinal - custoTotal;
         const container = document.getElementById('breakdown-container');
         if (!container) return;
 
@@ -1409,7 +1376,7 @@
         
         container.innerHTML = `
             ${row('Preço de Venda (Base)', null, precoBase, 'font-bold text-gray-800')}
-            ${descRelampago > 0 ? row('(-) Oferta Relâmpago', (descRelampago*100).toFixed(0), -valDescRelampago, 'text-red-500') : ''}
+            ${descRelampago > 0 ? row('(-) Oferta Relâmpago', (descRelampago).toFixed(0), -valDescRelampago, 'text-red-500') : ''}
             ${descCupom > 0 ? row('(-) Cupom Loja', descCupom, -valDescCupom, 'text-red-500') : ''}
             <div class="border-t border-dashed border-gray-300 my-2"></div>
             ${row('(=) Preço Venda (Nota Fiscal)', null, precoFinal, 'font-bold text-blue-800')}
@@ -1422,7 +1389,7 @@
             <div class="border-t border-gray-300 mt-2 pt-2 flex justify-between font-black ${lucroFinal>=0?'text-green-600':'text-red-600'}">
                 <span>(=) LUCRO LÍQUIDO FINAL</span><span>R$ ${lucroFinal.toFixed(2)}</span>
             </div>
-            <div class="text-right text-[10px] text-gray-400">Margem Real: ${margemFinal.toFixed(2)}%</div>
+            <div class="text-right text-[10px] text-gray-400">Margem Real: ${((lucroFinal/precoFinal)*100).toFixed(2)}%</div>
         `;
     }
 
@@ -1576,7 +1543,13 @@
     
     // Função de impressão com nome de arquivo e escopo de aba
     window.imprimirRelatorio = function() {
-        const nomeProd = document.getElementById('prod-name').value || "Relatorio_VeltAI";
+        const nomeProdInput = document.getElementById('prod-name');
+        const nomeProd = nomeProdInput ? (nomeProdInput.value || "Relatorio_VeltAI") : "Relatorio_VeltAI";
+        
+        // Atualiza o elemento de impressão com o nome
+        const printTitle = document.getElementById('prod-name-print');
+        if(printTitle) printTitle.innerText = nomeProd;
+
         let prefix = "Geral";
         
         // Determina qual aba está visível para nomear o arquivo
@@ -1584,7 +1557,7 @@
         else if(!document.getElementById('view-ads-analysis').classList.contains('hidden')) prefix = "Analise_Ads";
         else if(!document.getElementById('view-dash').classList.contains('hidden')) prefix = "Portfolio";
 
-        const safeName = `${prefix}_${nomeProd.replace(/[^a-z0-9]/gi, '_').toLowerCase()}`;
+        const safeName = `${prefix}_${nomeProd.replace(/[^a-z0-9\s-]/gi, '').trim().replace(/\s+/g, '_')}`;
         
         const originalTitle = document.title;
         document.title = safeName;
