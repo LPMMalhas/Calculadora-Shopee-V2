@@ -27,26 +27,27 @@
 
         /* ESTILOS DE IMPRESSÃO (PDF - OTIMIZADO A4) */
         @media print {
-            @page { margin: 0.5cm; size: A4; }
+            @page { margin: 0.3cm; size: A4; }
             
             body { 
                 background-color: white; 
                 -webkit-print-color-adjust: exact; 
                 print-color-adjust: exact;
-                font-size: 10px; 
+                font-size: 9px; 
             }
 
             /* Ocultar elementos de navegação e interação */
             #login-screen, button, .no-print, #tab-calc, #tab-dash, #tab-ads,
             #auth-status-container, #firebase-help, .fa-print, .fa-sign-out-alt, 
             input[type=range], #btn-delete, #btn-save, .fa-plus, .fa-save, .fa-trash-alt, .fa-eraser,
-            #ads-saved-products, .fa-chevron-down, .action-bar, #dash-search-container { 
+            #ads-saved-products, .fa-chevron-down, .action-bar, #dash-search-container,
+            #prod-name { /* Oculta o input original na impressão */
                 display: none !important; 
             }
 
             #app-content { 
                 box-shadow: none; max-width: 100%; width: 100%; margin: 0; border-radius: 0;
-                transform: scale(0.95); /* Aumentado para melhor legibilidade */
+                transform: scale(0.95);
                 transform-origin: top center;
                 overflow: visible;
             }
@@ -82,19 +83,16 @@
                 padding: 5px !important;
             }
             
-            /* QUEBRA DE PÁGINA: Força Simulação e Prova Real para a próxima página */
             #organic-simulation-wrapper {
                 page-break-before: always;
                 margin-top: 20px !important;
                 display: block !important;
             }
             
-            /* Garante que a Prova Real não quebre no meio */
             #breakdown-container {
                 page-break-inside: avoid;
             }
             
-            /* Ocultar explicitamente abas não ativas na impressão */
             .hidden { display: none !important; } 
             
             .fa-chevron-down, .absolute.left-3, .absolute.right-3 { display: none !important; }
@@ -205,7 +203,10 @@
                 <div class="flex flex-col md:flex-row gap-3 mb-4">
                     <div class="flex-grow">
                         <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide print:hidden">Nome do Produto</label>
+                        <!-- Input visível na tela, oculto no print -->
                         <input type="text" id="prod-name" placeholder="Ex: Tenis_Corrida" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold outline-none focus:border-orange-500 uppercase transition-all">
+                        <!-- Div visível apenas no print -->
+                        <div id="prod-name-print" class="hidden print:block text-2xl font-black uppercase text-gray-800 border-b-2 border-orange-500 pb-1 mb-2"></div>
                         <input type="hidden" id="prod-id">
                     </div>
                     <div class="flex items-end gap-2 no-print">
@@ -370,10 +371,6 @@
                         </div>
                     </div>
                 </div>
-
-                <button onclick="calcularGeral(true)" class="w-full py-4 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:bg-gray-800 transform active:scale-95 transition-all flex justify-center items-center gap-2 mt-4 no-print">
-                    <i class="fas fa-calculator text-yellow-400"></i> CALCULAR VIABILIDADE
-                </button>
             </div>
 
             <!-- RESULTADOS -->
@@ -800,7 +797,11 @@
         document.getElementById('preco-venda').value = "";
         document.getElementById('extra').value = "0.00";
         document.getElementById('devolucao').value = "0";
-        document.getElementById('desc-relampago').value = "0";
+        
+        // Reset Relampago
+        const descR = document.getElementById('desc-relampago');
+        if(descR) descR.value = "0";
+        
         window.atualizarPrecificacao('slider');
     };
 
@@ -1184,7 +1185,7 @@
     }
 
     const triggerUpdate = (source) => { window.atualizarPrecificacao(source); window.calcularGeral(false); };
-    ['custo', 'extra', 'taxa-fixa', 'comissao', 'imposto', 'devolucao', 'desc-cupom', 'desc-relampago'].forEach(id => {
+    ['custo', 'extra', 'taxa-fixa', 'comissao', 'imposto', 'devolucao', 'desc-cupom'].forEach(id => {
          const el = document.getElementById(id);
          if(el) el.addEventListener('input', () => {
              // If these change, update main calc AND sim
@@ -1192,6 +1193,16 @@
          });
     });
     
+    // desc-relampago input listener (Section 1) - ONLY syncs slider if slider hasn't been touched?
+    // User requested: "No campo 3... deverá aparecer o valor que coloquei... para servir de base".
+    // So if Section 1 changes, Section 3 slider should reflect it initially.
+    const descRelampagoInput = document.getElementById('desc-relampago');
+    if(descRelampagoInput) {
+        descRelampagoInput.addEventListener('input', (e) => {
+             triggerUpdate('slider'); // updates main calc
+        });
+    }
+
     const sliderEl = document.getElementById('margem-slider');
     if(sliderEl) sliderEl.addEventListener('input', () => triggerUpdate('slider'));
 
