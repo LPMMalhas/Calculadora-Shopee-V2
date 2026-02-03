@@ -27,13 +27,13 @@
 
         /* ESTILOS DE IMPRESSÃO (PDF - OTIMIZADO A4) */
         @media print {
-            @page { margin: 0.3cm; size: A4; }
+            @page { margin: 0.5cm; size: A4; }
             
             body { 
                 background-color: white; 
                 -webkit-print-color-adjust: exact; 
                 print-color-adjust: exact;
-                font-size: 9px; 
+                font-size: 10px; 
             }
 
             /* Ocultar elementos de navegação e interação */
@@ -46,7 +46,7 @@
 
             #app-content { 
                 box-shadow: none; max-width: 100%; width: 100%; margin: 0; border-radius: 0;
-                transform: scale(0.85); /* Redução para garantir fit */
+                transform: scale(0.95); /* Aumentado para melhor legibilidade */
                 transform-origin: top center;
                 overflow: visible;
             }
@@ -60,31 +60,43 @@
             .shopee-gradient p { font-size: 8px !important; }
 
             .p-6, .p-8, .md\:p-8 { padding: 0 !important; }
-            .p-5, .p-4 { padding: 4px !important; }
+            .p-5, .p-4 { padding: 5px !important; }
             
-            .space-y-8 > :not([hidden]) ~ :not([hidden]) { margin-top: 8px !important; }
-            .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 4px !important; }
-            .mb-8, .mb-4, .mb-3, .mb-2 { margin-bottom: 2px !important; }
-            .mt-6, .mt-5, .mt-4 { margin-top: 4px !important; }
-            .gap-4 { gap: 4px !important; }
-            .gap-3 { gap: 3px !important; }
+            .space-y-8 > :not([hidden]) ~ :not([hidden]) { margin-top: 10px !important; }
+            .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 5px !important; }
+            .mb-8, .mb-4, .mb-3, .mb-2 { margin-bottom: 3px !important; }
+            .mt-6, .mt-5, .mt-4 { margin-top: 5px !important; }
+            .gap-4 { gap: 5px !important; }
+            .gap-3 { gap: 4px !important; }
             
             input, select { 
                 border: none !important; background: transparent !important; 
                 appearance: none; -webkit-appearance: none; padding: 0 !important; 
-                font-weight: bold; color: #000; font-size: 10px !important;
+                font-weight: bold; color: #000; font-size: 11px !important;
                 height: auto !important; width: auto !important; display: inline-block;
             }
 
             .bg-gray-50, .bg-blue-50, .bg-red-50, .bg-green-50, .bg-orange-50, .bg-purple-50, .bg-yellow-50 {
                 background-color: transparent !important;
                 border: 1px solid #e5e7eb !important; border-radius: 4px !important;
-                padding: 4px !important;
+                padding: 5px !important;
             }
             
-            /* Garante quebras de página corretas */
-            #results-area, #camp-results, .grid, .rounded-2xl { page-break-inside: avoid; }
+            /* QUEBRA DE PÁGINA: Força Simulação e Prova Real para a próxima página */
+            #organic-simulation-wrapper {
+                page-break-before: always;
+                margin-top: 20px !important;
+                display: block !important;
+            }
+            
+            /* Garante que a Prova Real não quebre no meio */
+            #breakdown-container {
+                page-break-inside: avoid;
+            }
+            
+            /* Ocultar explicitamente abas não ativas na impressão */
             .hidden { display: none !important; } 
+            
             .fa-chevron-down, .absolute.left-3, .absolute.right-3 { display: none !important; }
             input[type=number] { padding-left: 0 !important; }
         }
@@ -358,10 +370,6 @@
                         </div>
                     </div>
                 </div>
-
-                <button onclick="calcularGeral(true)" class="w-full py-4 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:bg-gray-800 transform active:scale-95 transition-all flex justify-center items-center gap-2 mt-4 no-print">
-                    <i class="fas fa-calculator text-yellow-400"></i> CALCULAR VIABILIDADE
-                </button>
             </div>
 
             <!-- RESULTADOS -->
@@ -788,7 +796,7 @@
         document.getElementById('preco-venda').value = "";
         document.getElementById('extra').value = "0.00";
         document.getElementById('devolucao').value = "0";
-        document.getElementById('desc-relampago').value = "0";
+        
         window.atualizarPrecificacao('slider');
     };
 
