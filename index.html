@@ -25,6 +25,10 @@
         .table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         .table-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
 
+        /* Toggle Switch */
+        .toggle-checkbox:checked { right: 0; border-color: #ee4d2d; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #ee4d2d; }
+
         /* ESTILOS DE IMPRESSÃO (PDF - OTIMIZADO A4) */
         @media print {
             @page { margin: 0.3cm; size: A4; }
@@ -41,7 +45,7 @@
             #auth-status-container, #firebase-help, .fa-print, .fa-sign-out-alt, 
             input[type=range], #btn-delete, #btn-save, .fa-plus, .fa-save, .fa-trash-alt, .fa-eraser,
             #ads-saved-products, .fa-chevron-down, .action-bar, #dash-search-container,
-            #prod-name-label, #prod-name { 
+            #prod-name-label, #prod-name, #auto-fees-container { 
                 display: none !important; 
             }
 
@@ -268,9 +272,20 @@
             
             <!-- 1. CUSTOS E TAXAS -->
             <div class="space-y-4">
-                <div class="flex items-center gap-2 mb-2 border-b border-gray-100 pb-2">
-                    <div class="bg-orange-100 p-1.5 rounded-lg text-orange-600 no-print"><i class="fas fa-file-invoice-dollar text-sm"></i></div>
-                    <h2 class="text-sm font-bold text-gray-700 uppercase">1. Custos e Comissões</h2>
+                <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+                    <div class="flex items-center gap-2">
+                        <div class="bg-orange-100 p-1.5 rounded-lg text-orange-600 no-print"><i class="fas fa-file-invoice-dollar text-sm"></i></div>
+                        <h2 class="text-sm font-bold text-gray-700 uppercase">1. Custos e Comissões</h2>
+                    </div>
+                    
+                    <!-- TOGGLE AUTO-FEES -->
+                    <div class="flex items-center gap-2 no-print" id="auto-fees-container">
+                        <label for="toggle-fees" class="text-[10px] font-bold text-orange-600 uppercase cursor-pointer select-none">Auto-Ajuste Shopee 2024</label>
+                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggle" id="toggle-fees" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-gray-300" checked onchange="toggleAutoFees()">
+                            <label for="toggle-fees" class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -285,18 +300,26 @@
                 </div>
 
                 <div class="grid grid-cols-3 gap-3">
-                    <div class="space-y-1">
+                    <div class="space-y-1 relative">
                         <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Fixa Shopee (R$)</label>
-                        <input type="number" id="taxa-fixa" value="4.00" step="0.50" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold text-center outline-none">
+                        <input type="number" id="taxa-fixa" value="4.00" step="0.50" class="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-sm font-bold text-center outline-none transition-colors" readonly>
+                        <div id="lock-icon-fixa" class="absolute right-2 top-7 text-xs text-gray-400"><i class="fas fa-lock"></i></div>
                     </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Comissão (%)</label>
-                        <input type="number" id="comissao" value="20" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold text-center outline-none">
+                    <div class="space-y-1 relative">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide" title="Comissão Padrão">Comissão (%)</label>
+                        <input type="number" id="comissao" value="20" class="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-sm font-bold text-center outline-none transition-colors" readonly>
+                        <div id="lock-icon-comissao" class="absolute right-2 top-7 text-xs text-gray-400"><i class="fas fa-lock"></i></div>
                     </div>
                     <div class="space-y-1">
                         <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Imposto (%)</label>
                         <input type="number" id="imposto" value="4" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold text-center outline-none">
                     </div>
+                </div>
+                
+                <div id="rule-badge" class="hidden text-center">
+                    <span class="inline-block bg-orange-100 text-orange-700 text-[9px] font-bold px-2 py-0.5 rounded border border-orange-200 animate-pulse">
+                        <i class="fas fa-bolt mr-1"></i> Regra Aplicada: <span id="rule-name">...</span>
+                    </span>
                 </div>
 
                 <div class="bg-red-50 p-4 rounded-xl border border-red-100">
@@ -476,7 +499,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <p class="text-[8px] text-yellow-600 mt-2 text-center italic">*Esta simulação não altera os dados salvos do produto acima.</p>
+                    <p class="text-[8px] text-yellow-600 mt-2 text-center italic">*Simulação considera custos fixos atuais. Se o preço cair de faixa, o lucro pode variar.</p>
                 </div>
 
                 <div class="space-y-3 mt-4">
@@ -678,8 +701,69 @@
     // Variáveis Globais de Elementos (Definidas no topo para garantir acesso)
     let margemSlider = null;
 
-    // DEFINIÇÃO DAS FUNÇÕES AUXILIARES (GLOBALMENTE DISPONÍVEIS)
-    
+    // --- NOVA LÓGICA DE TAXAS SHOPEE (TABELA) ---
+    // [0-79.99]: 20% + R$4
+    // [80-99.99]: 14% + 5% (pix) + R$16 = 19% + 16
+    // [100-199.99]: 14% + 5% (pix) + R$20 = 19% + 20
+    // [200-499.99]: 14% + 5% (pix) + R$26 = 19% + 26
+    // [500+]: 14% + 8% (pix) + R$26 = 22% + 26
+    const SHOPEE_RULES = [
+        { max: 79.99,  com: 20, fix: 4.00, label: "Até R$79" },
+        { max: 99.99,  com: 14, fix: 16.00, label: "R$80 - R$99" },
+        { max: 199.99, com: 14, fix: 20.00, label: "R$100 - R$199" },
+        { max: 499.99, com: 14, fix: 26.00, label: "R$200 - R$499" },
+        { max: Infinity, com: 14, fix: 26.00, label: "Acima R$500" }
+    ];
+
+    window.resolveShopeeFees = function(precoFinal) {
+        if (!precoFinal || precoFinal <= 0) return { comTotal: 20, fixTotal: 4.00, label: "Padrão" };
+        
+        for (let rule of SHOPEE_RULES) {
+            if (precoFinal <= rule.max) {
+                return {
+                    comTotal: rule.com, // REMOVIDO: regra.pix
+                    fixTotal: rule.fix,
+                    label: rule.label
+                };
+            }
+        }
+        return { comTotal: 20, fixTotal: 4.00, label: "Erro" };
+    };
+
+    window.toggleAutoFees = function() {
+        const isAuto = document.getElementById('toggle-fees').checked;
+        const fixInput = document.getElementById('taxa-fixa');
+        const comInput = document.getElementById('comissao');
+        const lockFix = document.getElementById('lock-icon-fixa');
+        const lockCom = document.getElementById('lock-icon-comissao');
+        const badge = document.getElementById('rule-badge');
+
+        if (isAuto) {
+            fixInput.setAttribute('readonly', true);
+            comInput.setAttribute('readonly', true);
+            fixInput.classList.add('bg-gray-100');
+            comInput.classList.add('bg-gray-100');
+            fixInput.classList.remove('bg-white');
+            comInput.classList.remove('bg-white');
+            lockFix.classList.remove('hidden');
+            lockCom.classList.remove('hidden');
+            badge.classList.remove('hidden');
+            
+            // Trigger recalculation immediately
+            window.atualizarPrecificacao('auto');
+        } else {
+            fixInput.removeAttribute('readonly');
+            comInput.removeAttribute('readonly');
+            fixInput.classList.remove('bg-gray-100');
+            comInput.classList.remove('bg-gray-100');
+            fixInput.classList.add('bg-white');
+            comInput.classList.add('bg-white');
+            lockFix.classList.add('hidden');
+            lockCom.classList.add('hidden');
+            badge.classList.add('hidden');
+        }
+    };
+
     window.calcularPrecoFinal = function(precoBase) {
         const descCupom = window.getVal('desc-cupom') / 100;
         const descRelampago = window.getVal('desc-relampago') / 100;
@@ -978,6 +1062,11 @@
         document.getElementById('extra').value = "0.00";
         document.getElementById('devolucao').value = "0";
         document.getElementById('desc-relampago').value = "0";
+        
+        // Reset Auto Mode
+        document.getElementById('toggle-fees').checked = true;
+        window.toggleAutoFees();
+        
         window.atualizarPrecificacao('slider');
     };
 
@@ -1014,7 +1103,8 @@
             adsMode: document.getElementById('ads-mode').value,
             adsInput: document.getElementById('ads-input').value,
             perfilAds: document.getElementById('perfil-ads').value,
-            customCpa: document.getElementById('custom-cpa').value, 
+            customCpa: document.getElementById('custom-cpa').value,
+            autoFees: document.getElementById('toggle-fees').checked,
             updatedAt: new Date().toISOString()
         };
 
@@ -1077,6 +1167,14 @@
             const el = document.getElementById(key);
             if(el) el.value = val !== undefined ? val : (key === 'extra' || key === 'devolucao' ? 0 : el.value);
         }
+
+        // Set Auto Toggle State
+        const toggle = document.getElementById('toggle-fees');
+        if (data.autoFees !== undefined) {
+            toggle.checked = data.autoFees;
+        } else {
+            toggle.checked = true; // Default legacy fallback
+        }
         
         if(data.margem) {
              const label = document.getElementById('label-margem');
@@ -1085,6 +1183,7 @@
         
         window.toggleAdsMode();
         window.toggleAdsProfile();
+        window.toggleAutoFees(); // Updates read-only state
         window.atualizarPrecificacao('manual'); 
         window.calcularGeral(false);
     };
@@ -1112,6 +1211,9 @@
         
         const saved = document.getElementById('saved-products');
         if(saved) saved.value = "";
+
+        // Reset toggle
+        document.getElementById('toggle-fees').checked = true;
         
         // Reset state UI
         const badge = document.getElementById('badge-mode');
@@ -1128,6 +1230,7 @@
         
         window.toggleAdsMode();
         window.toggleAdsProfile();
+        window.toggleAutoFees();
         window.atualizarPrecificacao('slider');
         window.calcularGeral(false);
     }
@@ -1268,17 +1371,25 @@
     }
 
     const triggerUpdate = (source) => { window.atualizarPrecificacao(source); window.calcularGeral(false); };
-    ['custo', 'extra', 'taxa-fixa', 'comissao', 'imposto', 'devolucao', 'desc-cupom', 'desc-relampago'].forEach(id => {
+    ['custo', 'extra', 'imposto', 'devolucao', 'desc-cupom', 'desc-relampago'].forEach(id => {
          const el = document.getElementById(id);
          if(el) el.addEventListener('input', () => {
              // If these change, update main calc AND sim
              triggerUpdate('slider');
          });
     });
+
+    // Listeners for manual override inputs (Fixa and Comissao) if Auto is Off
+    ['taxa-fixa', 'comissao'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.addEventListener('input', () => {
+            if(!document.getElementById('toggle-fees').checked) {
+                triggerUpdate('manual'); // Just recalc profit, dont loop logic
+            }
+        });
+    });
     
-    // desc-relampago input listener (Section 1) - ONLY syncs slider if slider hasn't been touched?
-    // User requested: "No campo 3... deverá aparecer o valor que coloquei... para servir de base".
-    // So if Section 1 changes, Section 3 slider should reflect it initially.
+    // desc-relampago input listener (Section 1)
     const descRelampagoInput = document.getElementById('desc-relampago');
     if(descRelampagoInput) {
         descRelampagoInput.addEventListener('input', (e) => {
@@ -1300,9 +1411,10 @@
 
 
     window.atualizarPrecificacao = function(origem) {
-        // 1. Update UI Label immediately
+        const isAuto = document.getElementById('toggle-fees').checked;
         const slider = getMargemSlider();
         
+        // 1. UI Label
         if (origem === 'slider' && slider) {
              const label = document.getElementById('label-margem');
              if(label) label.innerText = slider.value + "%";
@@ -1310,37 +1422,83 @@
         
         const custo = window.getVal('custo');
         const extra = window.getVal('extra');
-        const fixo = window.getVal('taxa-fixa');
-        const taxasVariaveis = (window.getVal('comissao') + window.getVal('imposto') + window.getVal('devolucao')) / 100;
-        const custosFixosReais = custo + extra + fixo;
 
-        if (custo === 0) return;
+        // Logic for Auto Calculation Loop (When using Slider)
+        if (origem === 'slider' && slider && isAuto && custo > 0) {
+            // LOOP to stabilize price tier
+            let tempPriceBase = 0;
+            // Initial guess based on lowest tier
+            let currentFixa = 4.00;
+            let currentComissao = 20;
+            const margemDesejada = parseFloat(slider.value) / 100;
+            
+            // Iterate twice to converge (Price -> Fee -> Price -> Fee)
+            for(let i=0; i<3; i++) {
+                const taxasVariaveis = (currentComissao + window.getVal('imposto') + window.getVal('devolucao')) / 100;
+                const custosFixosReais = custo + extra + currentFixa;
+                const divisor = 1 - taxasVariaveis - margemDesejada;
 
-        if (origem === 'slider' && slider) {
+                if (divisor <= 0.05) break; 
+
+                const precoFinalAlvo = custosFixosReais / divisor;
+                const descCupom = window.getVal('desc-cupom') / 100;
+                const descRelampago = window.getVal('desc-relampago') / 100;
+                const fatorDescontos = (1 - descCupom) * (1 - descRelampago);
+                
+                tempPriceBase = precoFinalAlvo / fatorDescontos;
+                
+                // Calculate resulting Final Price to check tier
+                const calculatedFinal = tempPriceBase * fatorDescontos;
+                
+                // Check tier
+                const rule = window.resolveShopeeFees(calculatedFinal);
+                
+                // Update for next iteration
+                currentFixa = rule.fixTotal;
+                currentComissao = rule.comTotal;
+            }
+            
+            // Final set
+            tempPriceBase = Math.ceil(tempPriceBase - 0.90) + 0.90;
+            const pvInput = document.getElementById('preco-venda');
+            if(pvInput) pvInput.value = tempPriceBase.toFixed(2);
+        }
+        else if (origem === 'slider' && slider && !isAuto && custo > 0) {
+            // Legacy Slider Calculation (Manual Fees)
+            const fixo = window.getVal('taxa-fixa');
+            const taxasVariaveis = (window.getVal('comissao') + window.getVal('imposto') + window.getVal('devolucao')) / 100;
+            const custosFixosReais = custo + extra + fixo;
             const margemDesejada = parseFloat(slider.value) / 100;
             const divisor = 1 - taxasVariaveis - margemDesejada;
             const pvInput = document.getElementById('preco-venda');
-            
-            if (divisor <= 0.05) { 
-                if(pvInput) pvInput.value = 0; 
-                return; 
+            if (divisor > 0.05) {
+                const precoFinalAlvo = custosFixosReais / divisor;
+                const descCupom = window.getVal('desc-cupom') / 100;
+                const descRelampago = window.getVal('desc-relampago') / 100;
+                const fatorDescontos = (1 - descCupom) * (1 - descRelampago);
+                let precoBaseSugerido = precoFinalAlvo / fatorDescontos;
+                precoBaseSugerido = Math.ceil(precoBaseSugerido - 0.90) + 0.90;
+                if(pvInput) pvInput.value = precoBaseSugerido.toFixed(2);
             }
-            
-            const precoFinalAlvo = custosFixosReais / divisor;
-            const descCupom = window.getVal('desc-cupom') / 100;
-            const descRelampago = window.getVal('desc-relampago') / 100;
-            
-            const fatorDescontos = (1 - descCupom) * (1 - descRelampago);
-            let precoBaseSugerido = precoFinalAlvo / fatorDescontos;
-            precoBaseSugerido = Math.ceil(precoBaseSugerido - 0.90) + 0.90;
-            
-            if(pvInput) pvInput.value = precoBaseSugerido.toFixed(2);
         }
 
+        // --- Common Calculation Part ---
         const precoBase = window.getVal('preco-venda');
         const precoFinal = window.calcularPrecoFinal(precoBase);
         window.safeSetText('preco-final-display', "R$ " + precoFinal.toFixed(2));
         
+        // AUTO UPDATE INPUTS IF TOGGLED ON
+        if (isAuto) {
+            const rule = window.resolveShopeeFees(precoFinal);
+            document.getElementById('taxa-fixa').value = rule.fixTotal.toFixed(2);
+            document.getElementById('comissao').value = rule.comTotal;
+            document.getElementById('rule-name').innerText = rule.label;
+        }
+
+        // Recalculate Profit
+        const fixo = window.getVal('taxa-fixa');
+        const taxasVariaveis = (window.getVal('comissao') + window.getVal('imposto') + window.getVal('devolucao')) / 100;
+        const custosFixosReais = custo + extra + fixo;
         const custoTotalTaxas = precoFinal * taxasVariaveis;
         const lucroLiquido = precoFinal - custosFixosReais - custoTotalTaxas;
         
@@ -1352,16 +1510,27 @@
     };
 
     window.calcularGeral = function(scroll = true) {
+        // Ensure inputs are up to date before logic if Auto
+        const isAuto = document.getElementById('toggle-fees').checked;
+        const precoBase = window.getVal('preco-venda');
+        const precoFinal = window.calcularPrecoFinal(precoBase);
+        
+        if(isAuto) {
+            const rule = window.resolveShopeeFees(precoFinal);
+            document.getElementById('taxa-fixa').value = rule.fixTotal.toFixed(2);
+            document.getElementById('comissao').value = rule.comTotal;
+            document.getElementById('rule-name').innerText = rule.label;
+        }
+
         const custo = window.getVal('custo');
         const extra = window.getVal('extra');
         const fixo = window.getVal('taxa-fixa');
-        const precoBase = window.getVal('preco-venda');
         const taxasVariaveis = (window.getVal('comissao') + window.getVal('imposto') + window.getVal('devolucao')) / 100;
+        
         const adsMode = document.getElementById('ads-mode').value;
         const adsInput = window.getVal('ads-input');
         const perfilAds = document.getElementById('perfil-ads').value;
 
-        const precoFinal = window.calcularPrecoFinal(precoBase);
         const custoTotalTaxas = precoFinal * taxasVariaveis;
         const lucroUnit = precoFinal - (custo + extra + fixo) - custoTotalTaxas;
         
