@@ -651,7 +651,7 @@
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                     <i class="fas fa-search"></i>
                 </span>
-                <input type="text" id="dash-search" placeholder="Buscar produto..." class="w-full py-2 pl-10 pr-4 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-700 outline-none focus:border-orange-500 transition-all" oninput="updateDashboardTable()">
+                <input type="text" id="dash-search" placeholder="Buscar produto..." class="w-full py-2 pl-10 pr-4 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-700 outline-none focus:border-orange-500 transition-all">
             </div>
 
             <div class="overflow-x-auto table-scroll">
@@ -1118,9 +1118,15 @@
         }
     });
     
+    // Updated dashSearchInput Listener
     const dashSearchInput = document.getElementById('dash-search');
     if(dashSearchInput) {
         dashSearchInput.addEventListener('input', (e) => {
+            let val = e.target.value;
+            // Automatically replace spaces with underscore
+            if (val.includes(' ')) {
+                e.target.value = val.replace(/\s/g, '_');
+            }
             window.updateDashboardTable();
         });
     }
