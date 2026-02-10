@@ -17,9 +17,7 @@
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid #ee4d2d; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .hidden { display: none !important; }
-        .shake { animation: shake 0.5s; }
-        @keyframes shake { 0% { transform: translate(1px, 1px); } 10% { transform: translate(-1px, -2px); } 20% { transform: translate(-3px, 0px); } 30% { transform: translate(3px, 2px); } 40% { transform: translate(1px, -1px); } 50% { transform: translate(-1px, 2px); } 60% { transform: translate(-3px, 1px); } 70% { transform: translate(3px, 1px); } 80% { transform: translate(-1px, -1px); } 90% { transform: translate(1px, 2px); } 100% { transform: translate(1px, -2px); } }
-    
+        
         /* Custom Scrollbar for Table */
         .table-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
         .table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
@@ -41,7 +39,7 @@
             #auth-status-container, #firebase-help, .fa-print, .fa-sign-out-alt, 
             input[type=range], #btn-delete, #btn-save, .fa-plus, .fa-save, .fa-trash-alt, .fa-eraser,
             #ads-saved-products, .fa-chevron-down, .action-bar, #dash-search-container,
-            #prod-name-label, #prod-name { 
+            #prod-name-label, #prod-name, #shopee-2026-config { 
                 display: none !important; 
             }
 
@@ -154,11 +152,11 @@
             
             <div id="login-error" class="bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-xs text-center hidden"></div>
 
-            <button onclick="fazerLogin()" id="btn-login" class="w-full py-3.5 shopee-gradient text-white font-bold rounded-xl shadow-lg hover:opacity-90 transition-all">
+            <button onclick="window.fazerLogin()" id="btn-login" class="w-full py-3.5 shopee-gradient text-white font-bold rounded-xl shadow-lg hover:opacity-90 transition-all">
                 Entrar
             </button>
             
-            <button onclick="fazerLoginAnonimo()" id="btn-guest" class="w-full py-2 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-all text-xs uppercase">
+            <button onclick="window.fazerLoginAnonimo()" id="btn-guest" class="w-full py-2 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-all text-xs uppercase">
                 Entrar como Convidado
             </button>
             
@@ -168,7 +166,7 @@
                 <div class="flex-grow border-t border-gray-200"></div>
             </div>
 
-            <button onclick="fazerCadastro()" id="btn-register" class="w-full py-3.5 bg-white border-2 border-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all">
+            <button onclick="window.fazerCadastro()" id="btn-register" class="w-full py-3.5 bg-white border-2 border-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all">
                 Criar Conta Grátis
             </button>
         </div>
@@ -185,20 +183,20 @@
                 <p class="text-xs font-medium uppercase tracking-widest mt-1 opacity-90">Precificação, Ads & Firebase</p>
             </div>
             <div class="flex gap-4">
-                <i class="fas fa-print cursor-pointer text-white text-xl opacity-80 hover:opacity-100 transition-opacity" onclick="imprimirRelatorio()" title="Imprimir / Salvar PDF"></i>
-                <i class="fas fa-sign-out-alt cursor-pointer text-white text-xl opacity-60 hover:opacity-100 transition-opacity no-print" onclick="fazerLogout()" title="Sair da Conta"></i>
+                <i class="fas fa-print cursor-pointer text-white text-xl opacity-80 hover:opacity-100 transition-opacity" onclick="window.imprimirRelatorio()" title="Imprimir / Salvar PDF"></i>
+                <i class="fas fa-sign-out-alt cursor-pointer text-white text-xl opacity-60 hover:opacity-100 transition-opacity no-print" onclick="window.fazerLogout()" title="Sair da Conta"></i>
             </div>
         </div>
 
         <!-- Navegação Tabs -->
         <div class="flex border-b border-gray-200 bg-white sticky top-0 z-10 no-print">
-            <button id="tab-calc" onclick="switchTab('calc')" class="flex-1 py-4 text-xs font-bold text-orange-600 border-b-2 border-orange-500 bg-orange-50 uppercase tracking-wide transition-colors">
+            <button id="tab-calc" onclick="window.switchTab('calc')" class="flex-1 py-4 text-xs font-bold text-orange-600 border-b-2 border-orange-500 bg-orange-50 uppercase tracking-wide transition-colors">
                 <i class="fas fa-calculator mr-1"></i> Calculadora
             </button>
-            <button id="tab-ads" onclick="switchTab('ads')" class="flex-1 py-4 text-xs font-bold text-gray-400 hover:text-gray-600 border-b-2 border-transparent hover:bg-gray-50 uppercase tracking-wide transition-colors">
+            <button id="tab-ads" onclick="window.switchTab('ads')" class="flex-1 py-4 text-xs font-bold text-gray-400 hover:text-gray-600 border-b-2 border-transparent hover:bg-gray-50 uppercase tracking-wide transition-colors">
                 <i class="fas fa-search-dollar mr-1"></i> Análise Ads
             </button>
-            <button id="tab-dash" onclick="switchTab('dash')" class="flex-1 py-4 text-xs font-bold text-gray-400 hover:text-gray-600 border-b-2 border-transparent hover:bg-gray-50 uppercase tracking-wide transition-colors">
+            <button id="tab-dash" onclick="window.switchTab('dash')" class="flex-1 py-4 text-xs font-bold text-gray-400 hover:text-gray-600 border-b-2 border-transparent hover:bg-gray-50 uppercase tracking-wide transition-colors">
                 <i class="fas fa-chart-line mr-1"></i> Dashboard
             </button>
         </div>
@@ -228,10 +226,10 @@
                         <input type="hidden" id="prod-id">
                     </div>
                     <div class="flex items-end gap-2 no-print">
-                        <button onclick="novoProduto()" class="py-2 px-4 bg-white border border-gray-300 text-gray-600 rounded-lg text-sm font-bold shadow-sm hover:bg-gray-50 transition-all h-[42px]" title="Limpar Campos / Novo Produto">
+                        <button onclick="window.novoProduto()" class="py-2 px-4 bg-white border border-gray-300 text-gray-600 rounded-lg text-sm font-bold shadow-sm hover:bg-gray-50 transition-all h-[42px]" title="Limpar Campos / Novo Produto">
                             <i class="fas fa-plus"></i>
                         </button>
-                        <button onclick="salvarProduto()" id="btn-save" class="py-2 px-6 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-2 h-[42px] min-w-[120px]">
+                        <button onclick="window.salvarProduto()" id="btn-save" class="py-2 px-6 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-2 h-[42px] min-w-[120px]">
                             <i class="fas fa-save"></i> <span id="btn-save-text">Salvar</span>
                         </button>
                     </div>
@@ -240,27 +238,27 @@
                 <div class="flex items-end gap-2 no-print">
                     <div class="flex-grow relative">
                         <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Carregar Produto Salvo</label>
-                        <select id="saved-products" onchange="carregarProduto(this.value)" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm outline-none cursor-pointer appearance-none">
+                        <select id="saved-products" onchange="window.carregarProduto(this.value)" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm outline-none cursor-pointer appearance-none">
                             <option value="">Selecione um produto...</option>
                         </select>
                         <div class="absolute right-3 bottom-2.5 pointer-events-none text-gray-400"><i class="fas fa-chevron-down text-xs"></i></div>
                     </div>
-                    <button onclick="excluirProduto()" id="btn-delete" class="py-2 px-4 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm font-bold shadow-sm hover:bg-red-100 hover:border-red-300 transition-all h-[42px] hidden" title="Excluir Este Produto">
+                    <button onclick="window.excluirProduto()" id="btn-delete" class="py-2 px-4 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm font-bold shadow-sm hover:bg-red-100 hover:border-red-300 transition-all h-[42px] hidden" title="Excluir Este Produto">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </div>
 
                 <div class="flex justify-between items-center mt-4 pt-3 border-t border-gray-200 no-print action-bar">
-                    <button onclick="limparCalculadora()" class="text-[10px] font-bold text-red-500 hover:text-red-700 flex items-center gap-1 uppercase transition-all">
+                    <button onclick="window.limparCalculadora()" class="text-[10px] font-bold text-red-500 hover:text-red-700 flex items-center gap-1 uppercase transition-all">
                         <i class="fas fa-eraser mr-1"></i> Limpar Tudo
                     </button>
                     <div class="flex gap-3">
-                        <button onclick="exportarBackup()" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 uppercase">
+                        <button onclick="window.exportarBackup()" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 uppercase">
                             <i class="fas fa-download"></i> Exportar
                         </button>
                         <label class="text-[10px] font-bold text-green-600 hover:text-green-800 flex items-center gap-1 uppercase cursor-pointer">
                             <i class="fas fa-upload"></i> Importar
-                            <input type="file" id="import-file-calc" class="hidden" onchange="importarBackup(this)">
+                            <input type="file" id="import-file-calc" class="hidden" onchange="window.importarBackup(this)">
                         </label>
                     </div>
                 </div>
@@ -271,6 +269,25 @@
                 <div class="flex items-center gap-2 mb-2 border-b border-gray-100 pb-2">
                     <div class="bg-orange-100 p-1.5 rounded-lg text-orange-600 no-print"><i class="fas fa-file-invoice-dollar text-sm"></i></div>
                     <h2 class="text-sm font-bold text-gray-700 uppercase">1. Custos e Comissões</h2>
+                </div>
+                
+                <!-- OPÇÃO SHOPEE 2026 (NOVO) -->
+                <div id="shopee-2026-config" class="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-3">
+                    <div class="flex items-center justify-between mb-2">
+                         <div class="flex items-center gap-2">
+                             <input type="checkbox" id="auto-shopee-2026" onchange="window.toggleAutoShopee()" class="w-4 h-4 text-orange-600 rounded focus:ring-orange-500 border-gray-300">
+                             <label for="auto-shopee-2026" class="text-xs font-bold text-orange-800 uppercase cursor-pointer">Ativar Taxas Automáticas 2026</label>
+                         </div>
+                         <span class="text-[9px] text-orange-600 font-medium">Novo</span>
+                    </div>
+                    
+                    <div id="shopee-seller-type-container" class="hidden pl-6 mt-1">
+                        <label class="block text-[9px] font-bold text-gray-500 uppercase mb-1">Tipo de Vendedor</label>
+                        <select id="seller-type-shopee" onchange="window.calcularGeral(false)" class="w-full px-3 py-1.5 bg-white border border-orange-200 rounded-md text-xs text-gray-700 outline-none">
+                            <option value="std">Padrão (CNPJ / CPF < 450)</option>
+                            <option value="cpf_high">CPF Alto Volume (> 450 pedidos) [+R$ 3,00]</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -356,7 +373,7 @@
                     <!-- Seletor de Modo -->
                     <div class="space-y-1">
                         <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Base de Cálculo</label>
-                        <select id="ads-mode" onchange="toggleAdsMode(); calcularGeral(false);" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold text-gray-700 focus:ring-2 focus:ring-orange-500 outline-none">
+                        <select id="ads-mode" onchange="window.toggleAdsMode(); window.calcularGeral(false);" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold text-gray-700 focus:ring-2 focus:ring-orange-500 outline-none">
                             <option value="cpc">Tenho o CPC (R$)</option>
                             <option value="conv">Tenho a Conversão (%)</option>
                             <option value="none">Sem dados (Simular Mínimos)</option>
@@ -372,7 +389,7 @@
                     <!-- Perfil -->
                     <div class="col-span-2 space-y-1">
                         <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Perfil de Investimento</label>
-                        <select id="perfil-ads" onchange="toggleAdsProfile(); calcularGeral(false)" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
+                        <select id="perfil-ads" onchange="window.toggleAdsProfile(); window.calcularGeral(false)" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
                             <option value="0.5" selected>⚖️ Equilibrado (Min 50% Lucro)</option>
                             <option value="0.75">🚀 Agressivo (75% Lucro)</option>
                             <option value="0.95">👑 Dominação (95% Lucro)</option>
@@ -443,7 +460,7 @@
                     <div class="mb-4 bg-white p-3 rounded-lg border border-yellow-100 flex items-center justify-between shadow-sm">
                         <div>
                              <label class="block text-[9px] font-bold text-gray-500 uppercase mb-1">Teste um Desconto (%)</label>
-                             <input type="number" id="sim-custom-pct" placeholder="Ex: 50" class="w-24 px-3 py-1 bg-yellow-50 border border-yellow-300 rounded text-center font-black text-yellow-800 outline-none focus:ring-2 focus:ring-yellow-400" oninput="simularDescontoPersonalizado()">
+                             <input type="number" id="sim-custom-pct" placeholder="Ex: 50" class="w-24 px-3 py-1 bg-yellow-50 border border-yellow-300 rounded text-center font-black text-yellow-800 outline-none focus:ring-2 focus:ring-yellow-400" oninput="window.simularDescontoPersonalizado()">
                         </div>
                         <div class="text-right flex gap-4 text-xs">
                              <div>
@@ -503,7 +520,7 @@
             <div class="bg-purple-50 border border-purple-200 p-3 rounded-xl mb-4 no-print">
                 <label class="text-[10px] font-bold text-purple-700 uppercase tracking-wide block mb-1">Selecionar Produto Cadastrado</label>
                 <div class="relative">
-                    <select id="ads-saved-products" onchange="carregarProdutoAds(this.value)" class="w-full px-3 py-2 bg-white border border-purple-300 rounded-lg text-sm font-bold text-purple-900 outline-none cursor-pointer appearance-none focus:ring-2 focus:ring-purple-500">
+                    <select id="ads-saved-products" onchange="window.carregarProdutoAds(this.value)" class="w-full px-3 py-2 bg-white border border-purple-300 rounded-lg text-sm font-bold text-purple-900 outline-none cursor-pointer appearance-none focus:ring-2 focus:ring-purple-500">
                         <option value="">-- Selecione para comparar --</option>
                     </select>
                     <div class="absolute right-3 top-2.5 pointer-events-none text-purple-500"><i class="fas fa-chevron-down text-xs"></i></div>
@@ -528,27 +545,27 @@
             <div class="grid grid-cols-2 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-gray-500 uppercase">Impressões</label>
-                    <input type="number" id="camp-impressions" placeholder="0" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold text-gray-700 focus:outline-none" oninput="analisarCampanha()">
+                    <input type="number" id="camp-impressions" placeholder="0" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold text-gray-700 focus:outline-none" oninput="window.analisarCampanha()">
                 </div>
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-gray-500 uppercase">Cliques</label>
-                    <input type="number" id="camp-clicks" placeholder="0" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold text-gray-700 focus:outline-none" oninput="analisarCampanha()">
+                    <input type="number" id="camp-clicks" placeholder="0" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold text-gray-700 focus:outline-none" oninput="window.analisarCampanha()">
                 </div>
                  <div class="space-y-1">
                     <label class="text-[9px] font-bold text-gray-500 uppercase">Investimento (R$)</label>
-                    <input type="number" id="camp-expense" placeholder="0.00" step="0.01" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold text-red-500 focus:outline-none focus:border-red-500" oninput="analisarCampanha()">
+                    <input type="number" id="camp-expense" placeholder="0.00" step="0.01" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold text-red-500 focus:outline-none focus:border-red-500" oninput="window.analisarCampanha()">
                 </div>
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-gray-500 uppercase">GMV (Receita R$)</label>
-                    <input type="number" id="camp-gmv" placeholder="0.00" step="0.01" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold text-green-600 focus:outline-none focus:border-green-500" oninput="analisarCampanha()">
+                    <input type="number" id="camp-gmv" placeholder="0.00" step="0.01" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold text-green-600 focus:outline-none focus:border-green-500" oninput="window.analisarCampanha()">
                 </div>
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-gray-500 uppercase">Conversões</label>
-                    <input type="number" id="camp-conversions" placeholder="0" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold text-gray-700 focus:outline-none" oninput="analisarCampanha()">
+                    <input type="number" id="camp-conversions" placeholder="0" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold text-gray-700 focus:outline-none" oninput="window.analisarCampanha()">
                 </div>
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-gray-500 uppercase">Itens Vendidos</label>
-                    <input type="number" id="camp-items" placeholder="0" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold text-gray-700 focus:outline-none" oninput="analisarCampanha()">
+                    <input type="number" id="camp-items" placeholder="0" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold text-gray-700 focus:outline-none" oninput="window.analisarCampanha()">
                 </div>
             </div>
 
@@ -585,15 +602,15 @@
                 
                 <!-- BARRA DE AÇÕES ANÁLISE ADS -->
                 <div class="action-bar flex justify-end gap-3 mt-4 pt-3 border-t border-gray-200 no-print">
-                    <button onclick="imprimirRelatorio('ads')" class="text-[10px] font-bold text-gray-600 hover:text-gray-800 flex items-center gap-1 uppercase">
+                    <button onclick="window.imprimirRelatorio('ads')" class="text-[10px] font-bold text-gray-600 hover:text-gray-800 flex items-center gap-1 uppercase">
                         <i class="fas fa-print"></i> Imprimir Diagnóstico
                     </button>
-                    <button onclick="exportarBackup()" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 uppercase">
+                    <button onclick="window.exportarBackup()" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 uppercase">
                         <i class="fas fa-download"></i> Exportar
                     </button>
                     <label class="text-[10px] font-bold text-green-600 hover:text-green-800 flex items-center gap-1 uppercase cursor-pointer">
                         <i class="fas fa-upload"></i> Importar
-                        <input type="file" id="import-file-ads" class="hidden" onchange="importarBackup(this)">
+                        <input type="file" id="import-file-ads" class="hidden" onchange="window.importarBackup(this)">
                     </label>
                 </div>
             </div>
@@ -608,7 +625,7 @@
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                     <i class="fas fa-search"></i>
                 </span>
-                <input type="text" id="dash-search" placeholder="Buscar produto..." class="w-full py-2 pl-10 pr-4 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-700 outline-none focus:border-orange-500 transition-all" oninput="updateDashboardTable()">
+                <input type="text" id="dash-search" placeholder="Buscar produto..." class="w-full py-2 pl-10 pr-4 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-700 outline-none focus:border-orange-500 transition-all" oninput="window.updateDashboardTable()">
             </div>
 
             <div class="overflow-x-auto table-scroll">
@@ -620,15 +637,15 @@
 
             <!-- BARRA DE AÇÕES DASHBOARD -->
             <div class="action-bar flex justify-end gap-3 mt-4 pt-3 border-t border-gray-200 no-print">
-                <button onclick="imprimirRelatorio('dash')" class="text-[10px] font-bold text-gray-600 hover:text-gray-800 flex items-center gap-1 uppercase">
+                <button onclick="window.imprimirRelatorio('dash')" class="text-[10px] font-bold text-gray-600 hover:text-gray-800 flex items-center gap-1 uppercase">
                     <i class="fas fa-print"></i> Imprimir Portfolio
                 </button>
-                <button onclick="exportarBackup()" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 uppercase">
+                <button onclick="window.exportarBackup()" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 uppercase">
                     <i class="fas fa-download"></i> Exportar
                 </button>
                 <label class="text-[10px] font-bold text-green-600 hover:text-green-800 flex items-center gap-1 uppercase cursor-pointer">
                     <i class="fas fa-upload"></i> Importar
-                    <input type="file" id="import-file-dash" class="hidden" onchange="importarBackup(this)">
+                    <input type="file" id="import-file-dash" class="hidden" onchange="window.importarBackup(this)">
                 </label>
             </div>
         </div>
@@ -665,10 +682,7 @@
     window.selectedAdsProduct = null;
 
     // Helper functions global
-    window.getVal = (id) => {
-        const el = document.getElementById(id);
-        return el ? parseFloat(el.value) || 0 : 0;
-    };
+    window.getVal = (id) => parseFloat(document.getElementById(id).value) || 0;
     
     window.safeSetText = (id, text) => {
         const el = document.getElementById(id);
@@ -677,14 +691,102 @@
 
     // Variáveis Globais de Elementos (Definidas no topo para garantir acesso)
     let margemSlider = null;
+    
+    // DEFINIÇÃO DAS FUNÇÕES AUXILIARES - ATRIBUIÇÃO DIRETA AO WINDOW
+    
+    // NOTE: setVeredito only declared ONCE here
+    window.setVeredito = function(color, title, desc) {
+        const cont = document.getElementById('veredito-container');
+        const icon = document.getElementById('veredito-icon');
+        const tit = document.getElementById('veredito-titulo');
+        const txt = document.getElementById('veredito-texto');
+        if (!cont || !icon || !tit || !txt) return;
 
-    // DEFINIÇÃO DAS FUNÇÕES AUXILIARES (GLOBALMENTE DISPONÍVEIS)
+        const colors = { red: ['border-red-500', 'bg-red-50', 'text-red-500'], green: ['border-green-500', 'bg-green-50', 'text-green-500'], blue: ['border-blue-500', 'bg-blue-50', 'text-blue-500'] };
+        const c = colors[color];
+        cont.className = `p-4 rounded-xl border-l-4 shadow-sm flex items-start gap-3 ${c[1]} ${c[0]}`;
+        icon.className = `text-2xl mt-1 ${c[2]}`;
+        icon.innerHTML = color === 'red' ? '<i class="fas fa-exclamation-triangle"></i>' : '<i class="fas fa-check-circle"></i>';
+        tit.innerText = title; tit.className = `font-bold text-sm uppercase ${c[2]}`; txt.innerText = desc;
+    };
+
+    window.checkVereditoConv = function(lucroUnit, convMin) {
+        if (lucroUnit <= 0) window.setVeredito('red', 'PREJUÍZO', 'Margem negativa.');
+        else if (convMin > 3.0) window.setVeredito('red', 'DIFÍCIL', `Precisa de ${convMin.toFixed(1)}% conv.`);
+        else if (convMin < 1.0) window.setVeredito('green', 'MUITO VIÁVEL', `Meta fácil: ${convMin.toFixed(1)}%.`);
+        else window.setVeredito('blue', 'VIÁVEL', `Meta de ${convMin.toFixed(1)}% ok.`);
+    };
+
+    window.checkVereditoCPC = function(lucroUnit, cpcMax) {
+        if (lucroUnit <= 0) window.setVeredito('red', 'PREJUÍZO', 'Margem negativa.');
+        else if (cpcMax < 0.11) window.setVeredito('red', 'INVIÁVEL', `Teto R$ ${cpcMax.toFixed(2)} < Mínimo.`);
+        else window.setVeredito('blue', 'VIÁVEL', `Teto de R$ ${cpcMax.toFixed(2)} ok.`);
+    };
+
+    window.checkVereditoOrganic = function(lucroUnit) {
+        window.setVeredito(lucroUnit <= 0 ? 'red' : 'green', lucroUnit <= 0 ? 'PREJUÍZO' : 'LUCRO ORGÂNICO', lucroUnit <= 0 ? 'Margem negativa.' : 'Sem custos de ads.');
+    };
     
     window.calcularPrecoFinal = function(precoBase) {
         const descCupom = window.getVal('desc-cupom') / 100;
         const descRelampago = window.getVal('desc-relampago') / 100;
         const aposRelampago = precoBase * (1 - descRelampago);
         return aposRelampago * (1 - descCupom);
+    };
+    
+    window.toggleAutoShopee = function() {
+        const isAuto = document.getElementById('auto-shopee-2026').checked;
+        const inputs = ['comissao', 'taxa-fixa'];
+        const configContainer = document.getElementById('shopee-seller-type-container');
+
+        if(isAuto) {
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                el.readOnly = true;
+                el.classList.add('bg-gray-100', 'text-gray-500');
+            });
+            configContainer.classList.remove('hidden');
+            window.calcularGeral(false);
+        } else {
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                el.readOnly = false;
+                el.classList.remove('bg-gray-100', 'text-gray-500');
+            });
+            configContainer.classList.add('hidden');
+        }
+    };
+    
+    window.calcularTaxasShopee = function() {
+        if (!document.getElementById('auto-shopee-2026').checked) return;
+
+        const preco = parseFloat(document.getElementById('preco-final-display').innerText.replace('R$ ', '').replace(',', '.')) || 0;
+        const tipoVendedor = document.getElementById('seller-type-shopee').value;
+        let pct = 0;
+        let fixa = 0;
+
+        // Tiers Logic (Baseada no preço FINAL de venda)
+        // Correção: A regra da Shopee se aplica ao valor pago pelo comprador, então usamos o preço final calculado
+        // Mas para evitar loop infinito na precificação baseada em margem, usamos uma aproximação baseada no Preço Venda Base se o Final for 0
+        let refPrice = preco > 0 ? preco : window.getVal('preco-venda');
+
+        if (refPrice < 80) { pct = 20; fixa = 4; }
+        else if (refPrice < 100) { pct = 14; fixa = 16; }
+        else if (refPrice < 200) { pct = 14; fixa = 20; }
+        else { pct = 14; fixa = 26; }
+
+        // Low price rule
+        if (refPrice < 8) { fixa = refPrice / 2; } 
+
+        // CPF High Volume rule
+        if (tipoVendedor === 'cpf_high') { fixa += 3; }
+
+        // Update DOM without triggering endless loop
+        const elComissao = document.getElementById('comissao');
+        const elFixa = document.getElementById('taxa-fixa');
+        
+        if(elComissao.value != pct) elComissao.value = pct;
+        if(elFixa.value != fixa.toFixed(2)) elFixa.value = fixa.toFixed(2);
     };
     
     window.renderizarSimulacaoOrganica = function(precoBase, custo, extra, fixo) { 
@@ -748,19 +850,31 @@
         window.safeSetText('sim-custom-margin', margin.toFixed(1) + "%");
     };
 
-    window.renderizarProvaReal = function(precoBase, custo, extra, fixo) {
+    window.renderizarProvaReal = function(precoBase, custo, extra, fixo, customRelampagoPct = null) {
         const descCupom = window.getVal('desc-cupom'); 
-        const descRelampago = window.getVal('desc-relampago') / 100;
+        
+        // Use custom percentage if provided (from simulation), otherwise use saved input value
+        let descRelampago = 0;
+        if (customRelampagoPct !== null) {
+             descRelampago = customRelampagoPct;
+        } else {
+             descRelampago = window.getVal('desc-relampago') / 100;
+        }
+
         const comissao = window.getVal('comissao'); const imposto = window.getVal('imposto'); const devolucao = window.getVal('devolucao');
+        
         const valDescRelampago = precoBase * descRelampago; 
         const precoAposRelampago = precoBase - valDescRelampago;
         const valDescCupom = precoAposRelampago * (descCupom / 100); 
         const precoFinal = precoAposRelampago - valDescCupom;
+        
         const valComissao = precoFinal * (comissao / 100); 
         const valImposto = precoFinal * (imposto / 100); 
         const valDevolucao = precoFinal * (devolucao / 100);
+        
         const custoTotal = custo + extra + fixo + valComissao + valImposto + valDevolucao; 
         const lucroFinal = precoFinal - custoTotal;
+        
         const margemFinal = precoFinal > 0 ? (lucroFinal / precoFinal) * 100 : 0;
         
         const container = document.getElementById('breakdown-container');
@@ -771,682 +885,186 @@
         container.innerHTML = `
             ${row('Preço de Venda (Base)', null, precoBase, 'font-bold text-gray-800')}
             ${descRelampago > 0 ? row('(-) Oferta Relâmpago', (descRelampago*100).toFixed(0), -valDescRelampago, 'text-red-500') : ''}
-            ${descCupom > 0 ? row('(-) Cupom Loja', descCupom, -valDescCupom, 'text-red-500') : ''}
+            ${descCupom > 0 ? row('(-) Cupom Loja', (descCupom*100).toFixed(0), -valDescCupom, 'text-red-500') : ''}
             <div class="border-t border-dashed border-gray-300 my-2"></div>
             ${row('(=) Preço Venda (Nota Fiscal)', null, precoFinal, 'font-bold text-blue-800')}
-            ${devolucao > 0 ? row('(-) Devolução Estimada', devolucao, -valDevolucao, 'text-red-500 font-bold') : ''}
+            ${devolucao > 0 ? row('(-) Devolução Estimada', (devolucao*100).toFixed(1), -valDevolucao, 'text-red-500 font-bold') : ''}
             ${row('(-) Custo do Produto', null, -custo, 'text-red-400')}
             ${row('(-) Custos Extras', null, -extra, 'text-red-400')}
             ${row('(-) Taxa Fixa Shopee', null, -fixo, 'text-red-400')}
-            ${row('(-) Comissão Shopee', comissao, -valComissao, 'text-red-400')}
-            ${row('(-) Impostos', imposto, -valImposto, 'text-red-400')}
+            ${row('(-) Comissão Shopee', (comissao*100).toFixed(0), -valComissao, 'text-red-400')}
+            ${row('(-) Impostos', (imposto*100).toFixed(0), -valImposto, 'text-red-400')}
             <div class="border-t border-gray-300 mt-2 pt-2 flex justify-between font-black ${lucroFinal>=0?'text-green-600':'text-red-600'}">
                 <span>(=) LUCRO LÍQUIDO FINAL</span><span>R$ ${lucroFinal.toFixed(2)}</span>
             </div>
-            <div class="text-right text-[10px] text-gray-400">Margem Real: ${margemFinal.toFixed(2)}%</div>
+            <div class="text-right text-[10px] text-gray-400">Margem Real: ${((lucroFinal/precoFinal)*100).toFixed(2)}%</div>
         `;
-    };
-
-    window.checkVereditoConv = function(lucroUnit, convMin) {
-        if (lucroUnit <= 0) setVeredito('red', 'PREJUÍZO', 'Margem negativa.');
-        else if (convMin > 3.0) setVeredito('red', 'DIFÍCIL', `Precisa de ${convMin.toFixed(1)}% conv.`);
-        else if (convMin < 1.0) setVeredito('green', 'MUITO VIÁVEL', `Meta fácil: ${convMin.toFixed(1)}%.`);
-        else setVeredito('blue', 'VIÁVEL', `Meta de ${convMin.toFixed(1)}% ok.`);
-    };
-
-    window.checkVereditoCPC = function(lucroUnit, cpcMax) {
-        if (lucroUnit <= 0) setVeredito('red', 'PREJUÍZO', 'Margem negativa.');
-        else if (cpcMax < 0.11) setVeredito('red', 'INVIÁVEL', `Teto R$ ${cpcMax.toFixed(2)} < Mínimo.`);
-        else setVeredito('blue', 'VIÁVEL', `Teto de R$ ${cpcMax.toFixed(2)} ok.`);
-    };
-
-    window.checkVereditoOrganic = function(lucroUnit) {
-        setVeredito(lucroUnit <= 0 ? 'red' : 'green', lucroUnit <= 0 ? 'PREJUÍZO' : 'LUCRO ORGÂNICO', lucroUnit <= 0 ? 'Margem negativa.' : 'Sem custos de ads.');
-    };
-
-    function setVeredito(color, title, desc) {
-        const cont = document.getElementById('veredito-container');
-        const icon = document.getElementById('veredito-icon');
-        const tit = document.getElementById('veredito-titulo');
-        const txt = document.getElementById('veredito-texto');
-        if (!cont || !icon || !tit || !txt) return;
-        const colors = { red: ['border-red-500', 'bg-red-50', 'text-red-500'], green: ['border-green-500', 'bg-green-50', 'text-green-500'], blue: ['border-blue-500', 'bg-blue-50', 'text-blue-500'] };
-        const c = colors[color];
-        cont.className = `p-4 rounded-xl border-l-4 shadow-sm flex items-start gap-3 ${c[1]} ${c[0]}`;
-        icon.className = `text-2xl mt-1 ${c[2]}`;
-        icon.innerHTML = color === 'red' ? '<i class="fas fa-exclamation-triangle"></i>' : '<i class="fas fa-check-circle"></i>';
-        tit.innerText = title; tit.className = `font-bold text-sm uppercase ${c[2]}`; txt.innerText = desc;
     }
 
-    // 2. AUTH SYSTEM
-    const initAuth = async () => {};
-    initAuth();
-
-    onAuthStateChanged(auth, (user) => {
-        const loginScreen = document.getElementById('login-screen');
-        const appContent = document.getElementById('app-content');
-        if (user) {
-            window.currentUser = user;
-            loginScreen.classList.add('hidden');
-            appContent.classList.remove('hidden');
-            let displayName = user.email ? user.email.split('@')[0] : 'Convidado';
-            document.getElementById('auth-status').innerText = `${displayName}`;
-            document.getElementById('auth-status').classList.add("text-green-500");
-            initFirestoreListener();
-        } else {
-            window.currentUser = null;
-            loginScreen.classList.remove('hidden');
-            appContent.classList.add('hidden');
-            document.getElementById('auth-status').innerText = "Desconectado";
-        }
-    });
-
-    window.fazerLogin = async () => {
-        const email = document.getElementById('login-email').value;
-        const pass = document.getElementById('login-password').value;
-        const btn = document.getElementById('btn-login');
-
-        if (!email || !pass) return showError("Preencha e-mail e senha.");
-
-        btn.innerHTML = '<div class="loader"></div>';
-        btn.disabled = true;
-        document.getElementById('login-error').classList.add('hidden');
-
-        try {
-            await signInWithEmailAndPassword(auth, email, pass);
-        } catch (error) {
-            console.error(error);
-            handleAuthError(error);
-            btn.innerText = "Entrar";
-            btn.disabled = false;
-        }
+    window.carregarProdutoAds = function(id) {
+        if (!id || !window.productsCache[id]) { window.selectedAdsProduct = null; document.getElementById('ads-product-info').classList.add('hidden'); return; }
+        const p = window.productsCache[id];
+        const pBase = parseFloat(p.precoVenda)||0; const custo = parseFloat(p.custo)||0; const extra = parseFloat(p.extra)||0; const fixo = parseFloat(p.taxaFixa)||0;
+        const descC = (parseFloat(p.descCupom)||0)/100; const descR = (parseFloat(p.descRelampago)||0)/100;
+        const pFinal = (pBase * (1-descR)) * (1-descC);
+        const comissao = (parseFloat(p.comissao)||0)/100; const imposto = (parseFloat(p.imposto)||0)/100; const devolucao = (parseFloat(p.devolucao)||0)/100;
+        const taxasTotal = pFinal * (comissao + imposto + devolucao);
+        const lucroUnit = pFinal - custo - extra - fixo - taxasTotal;
+        const margem = pFinal > 0 ? (lucroUnit / pFinal) * 100 : 0;
+        const targetCpa = (p.perfilAds === 'custom') ? (parseFloat(p.customCpa)||0) : (p.perfilAds == 0 ? 0 : Math.max(lucroUnit * 0.5, lucroUnit * parseFloat(p.perfilAds||0.5)));
+        const targetRoas = targetCpa > 0 ? (pFinal / targetCpa) : 0;
+        
+        window.selectedAdsProduct = { name: p.name, lucroUnit: lucroUnit, margem: margem, targetRoas: targetRoas, targetCpa: targetCpa };
+        
+        window.safeSetText('ads-info-margin', margem.toFixed(1) + "%");
+        window.safeSetText('ads-info-profit', "R$ " + lucroUnit.toFixed(2));
+        window.safeSetText('ads-info-roas', targetRoas.toFixed(2));
+        document.getElementById('ads-product-info').classList.remove('hidden');
+        analisarCampanha();
     };
 
-    window.fazerCadastro = async () => {
-        const email = document.getElementById('login-email').value;
-        const pass = document.getElementById('login-password').value;
-        const btn = document.getElementById('btn-register');
-        if (!email || !pass) return showError("Preencha dados.");
-        if (pass.length < 6) return showError("Senha min 6 chars.");
-        const originalText = btn.innerText;
-        btn.innerHTML = '<div class="loader"></div>';
-        btn.disabled = true;
-        try { await createUserWithEmailAndPassword(auth, email, pass); } catch (error) { handleAuthError(error); btn.innerText = originalText; btn.disabled = false; }
-    };
-    
-    window.fazerLoginAnonimo = async () => {
-        const btn = document.getElementById('btn-guest');
-        const originalText = btn.innerText;
-        btn.innerHTML = '<div class="loader"></div>';
-        btn.disabled = true;
-        try { await signInAnonymously(auth); } catch (error) { handleAuthError(error); btn.innerText = originalText; btn.disabled = false; }
-    };
+    window.analisarCampanha = function() {
+        const impress = window.getVal('camp-impressions'); const clicks = window.getVal('camp-clicks'); const expense = window.getVal('camp-expense');
+        const gmv = window.getVal('camp-gmv'); const conversions = window.getVal('camp-conversions'); const items = window.getVal('camp-items');
+        const resultDiv = document.getElementById('camp-results');
+        
+        if(!resultDiv) return;
+        if(clicks === 0 && expense === 0) { resultDiv.classList.add('hidden'); return; }
+        resultDiv.classList.remove('hidden');
 
-    window.fazerLogout = async () => { try { await signOut(auth); } catch (error) { console.error(error); } };
+        const roas = expense > 0 ? (gmv / expense) : 0;
+        const acos = gmv > 0 ? (expense / gmv) * 100 : 0;
+        const ctr = impress > 0 ? (clicks / impress) * 100 : 0;
+        const cr = clicks > 0 ? (conversions / clicks) * 100 : 0;
+        const cpa = conversions > 0 ? (expense / conversions) : 0;
+        const cpc = clicks > 0 ? (expense / clicks) : 0;
 
-    function handleAuthError(error) {
-        if (error.code === 'auth/operation-not-allowed') {
-            document.getElementById('firebase-help').classList.remove('hidden');
-            showError("Configuração Pendente no Firebase.");
-        } else {
-            showError(error.message);
-        }
-    }
+        window.safeSetText('res-camp-roas', roas.toFixed(2));
+        window.safeSetText('res-camp-acos', acos.toFixed(1) + "%");
+        window.safeSetText('res-camp-ctr', ctr.toFixed(2) + "%");
+        window.safeSetText('res-camp-cr', cr.toFixed(2) + "%");
+        window.safeSetText('res-camp-cpa', "R$ " + cpa.toFixed(2));
+        window.safeSetText('res-camp-cpc', "R$ " + cpc.toFixed(2));
+        window.safeSetText('res-camp-items', items);
 
-    function showError(msg) {
-        const errDiv = document.getElementById('login-error');
-        errDiv.innerText = msg;
-        errDiv.classList.remove('hidden');
-        document.getElementById('btn-login').disabled = false;
-        document.getElementById('btn-login').innerText = "Entrar";
-    }
+        const profitBox = document.getElementById('camp-profit-box');
+        const compTable = document.getElementById('comp-analysis-container');
+        const compBody = document.getElementById('comp-analysis-body');
+        const diagText = document.getElementById('comp-diagnostic-text');
+        const verdictEl = document.getElementById('camp-verdict');
 
-    function initFirestoreListener() {
-        if (!window.currentUser) return;
-        const productsRef = collection(db, 'users', window.currentUser.uid, 'products');
-        onSnapshot(productsRef, (snapshot) => {
-            const select = document.getElementById('saved-products');
-            const selectAds = document.getElementById('ads-saved-products'); 
-            const currentVal = select.value;
-            select.innerHTML = '<option value="">Selecione um produto...</option>';
-            selectAds.innerHTML = '<option value="">-- Selecione para comparar --</option>'; 
-            window.productsCache = {};
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                window.productsCache[doc.id] = data;
-                const option = document.createElement('option');
-                option.value = doc.id;
-                option.innerText = data.name;
-                select.appendChild(option);
-                const optionAds = document.createElement('option');
-                optionAds.value = doc.id;
-                optionAds.innerText = data.name;
-                selectAds.appendChild(optionAds);
-            });
-            if(window.productsCache[currentVal]) select.value = currentVal;
-            if(document.getElementById('view-dash').classList.contains('block')) updateDashboardTable();
-        });
-    }
+        if (window.selectedAdsProduct) {
+            const quantitySold = items > 0 ? items : conversions;
+            const netCampaignProfit = (quantitySold * window.selectedAdsProduct.lucroUnit) - expense;
+            
+            const profitEl = document.getElementById('res-camp-profit');
+            if (profitEl) {
+                profitEl.innerText = "R$ " + netCampaignProfit.toFixed(2);
+                profitEl.className = netCampaignProfit >= 0 ? "text-2xl font-black text-green-600" : "text-2xl font-black text-red-600";
+            }
+            window.safeSetText('res-camp-profit-desc', `${quantitySold} itens x R$ ${window.selectedAdsProduct.lucroUnit.toFixed(2)} (lucro unit) - R$ ${expense.toFixed(2)} (ads)`);
+            
+            if(profitBox) profitBox.classList.remove('hidden');
 
-    const nameInput = document.getElementById('prod-name');
-    nameInput.addEventListener('input', (e) => {
-        let val = e.target.value;
-        if(val.length > 0) {
-            const firstLetter = val.charAt(0).toUpperCase();
-            const rest = val.slice(1);
-            const formatted = (firstLetter + rest).replace(/\s+/g, '_');
-            e.target.value = formatted;
-        }
-    });
-    
-    const dashSearchInput = document.getElementById('dash-search');
-    if(dashSearchInput) {
-        dashSearchInput.addEventListener('input', (e) => {
-            window.updateDashboardTable();
-        });
-    }
+            const targetCpa = window.selectedAdsProduct.targetCpa;
+            const targetRoas = window.selectedAdsProduct.targetRoas;
+            const targetConv = targetCpa > 0 ? (cpc / targetCpa) * 100 : 0;
+            const maxCpc = targetCpa * (cr / 100);
 
-    // LISTENER PARA IMPRESSÃO AUTOMÁTICA
-    window.addEventListener('beforeprint', () => {
-        const nomeProdInput = document.getElementById('prod-name');
-        const printTitle = document.getElementById('prod-name-print');
-        if(nomeProdInput && printTitle) {
-            let val = nomeProdInput.value || "RELATÓRIO DE PRODUTO";
-            printTitle.innerText = val.replace(/\s+/g, '_');
-        }
-    });
-    
-    // Inicialização automática dos cálculos ao carregar
-    window.addEventListener('load', () => {
-         setTimeout(() => {
-             if(typeof window.calcularGeral === 'function') {
-                 window.calcularGeral(false);
+            const row = (name, target, actual, isGood, goodTxt, badTxt) => `
+                <tr class="bg-white border-b hover:bg-gray-50">
+                    <td class="px-4 py-2 font-medium text-gray-900">${name}</td>
+                    <td class="px-4 py-2 text-gray-500">${target}</td>
+                    <td class="px-4 py-2 font-bold ${isGood ? 'text-green-600' : 'text-red-600'}">${actual}</td>
+                    <td class="px-4 py-2 text-center text-xs">
+                        <span class="${isGood ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} px-2 py-0.5 rounded-full">
+                            ${isGood ? goodTxt : badTxt}
+                        </span>
+                    </td>
+                </tr>
+            `;
+
+            let rows = "";
+            rows += row('ROAS', `> ${targetRoas.toFixed(2)}`, roas.toFixed(2), roas >= targetRoas, 'Bom', 'Baixo');
+            rows += row('CPA', `< R$ ${targetCpa.toFixed(2)}`, `R$ ${cpa.toFixed(2)}`, cpa <= targetCpa, 'Bom', 'Alto');
+            rows += row('CPC (Ideal)', `< R$ ${maxCpc.toFixed(2)}`, `R$ ${cpc.toFixed(2)}`, cpc <= maxCpc, 'Eficiente', 'Caro');
+            rows += row('Conv. (Nec.)', `> ${targetConv.toFixed(1)}%`, `${cr.toFixed(1)}%`, cr >= targetConv, 'Ótimo', 'Baixa');
+
+            if(compBody) compBody.innerHTML = rows;
+
+            let diagnosis = "";
+            if (cpa > targetCpa) {
+                diagnosis = `<strong class="text-red-700">🔴 ANÁLISE TÉCNICA: CAMPANHA INEFICIENTE</strong><br>`;
+                diagnosis += `<div class="mt-2 text-gray-700 text-xs space-y-1">`;
+                if (cpc > maxCpc) {
+                    diagnosis += `• <b>CPC Inflacionado:</b> O leilão está caro (R$ ${cpc.toFixed(2)}). Para viabilizar, seu CTR precisa subir urgente. Teste novas capas.`;
+                }
+                if (cr < targetConv) {
+                    diagnosis += `• <b>Conversão Crítica:</b> Apenas ${cr.toFixed(2)}% compram. O tráfego chega e sai. Melhore descrição, provas sociais ou revise se o preço está competitivo.`;
+                }
+                if (acos > window.selectedAdsProduct.margem) {
+                     diagnosis += `• <b>ACOS Explosivo:</b> Você gasta ${acos.toFixed(1)}% da venda em ads, mas sua margem é ${window.selectedAdsProduct.margem.toFixed(1)}%. Prejuízo garantido.`;
+                }
+                diagnosis += `</div>`;
+            } else {
+                diagnosis = `
+                    <strong class="text-green-700">🟢 ANÁLISE TÉCNICA: CAMPANHA ESCALÁVEL</strong><br>
+                    <div class="mt-1 text-gray-600 text-xs">
+                    Métricas saudáveis. O CPA (R$ ${cpa.toFixed(2)}) permite lucro. <br>
+                    <b>Próximo passo:</b> Aumente o orçamento diário em 20% a cada 3 dias para escalar sem perder a eficiência (ROAS).
+                    </div>
+                `;
+            }
+            if(diagText) diagText.innerHTML = diagnosis;
+            if(compTable) compTable.classList.remove('hidden');
+
+             if (netCampaignProfit < 0) {
+                 if(verdictEl) {
+                     verdictEl.innerText = `PREJUÍZO OPERACIONAL: A campanha queimou R$ ${Math.abs(netCampaignProfit).toFixed(2)}. Pause palavras-chave amplas ou reduza o teto de lance.`;
+                     verdictEl.className = "text-xs text-red-600 leading-relaxed font-bold";
+                 }
+             } else {
+                 if(verdictEl) {
+                     verdictEl.innerText = "LUCRO OPERACIONAL: O produto se paga. Foque em manter o ROAS estável enquanto aumenta o volume.";
+                     verdictEl.className = "text-xs text-green-600 leading-relaxed font-bold";
+                 }
              }
-         }, 500);
-    });
 
-    window.novoProduto = () => {
-        document.getElementById('prod-id').value = "";
-        document.getElementById('prod-name').value = "";
-        document.getElementById('saved-products').value = "";
-        document.getElementById('badge-mode').innerText = "NOVO";
-        document.getElementById('badge-mode').className = "bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold text-[9px]";
-        document.getElementById('btn-save-text').innerText = "Salvar";
-        document.getElementById('btn-delete').classList.add('hidden');
-        document.getElementById('custo').value = "";
-        document.getElementById('preco-venda').value = "";
-        document.getElementById('extra').value = "0.00";
-        document.getElementById('devolucao').value = "0";
-        document.getElementById('desc-relampago').value = "0";
-        window.atualizarPrecificacao('slider');
-    };
-
-    window.excluirProduto = async () => {
-        const docId = document.getElementById('prod-id').value;
-        if (!window.currentUser || !docId) return alert("Selecione um produto.");
-        if(confirm("Excluir produto?")) {
-            try {
-                const collectionRef = collection(db, 'users', window.currentUser.uid, 'products');
-                await deleteDoc(doc(collectionRef, docId));
-                alert("Excluído!");
-                window.novoProduto();
-            } catch(e) { console.error(e); }
-        }
-    };
-
-    window.salvarProduto = async () => {
-        if (!window.currentUser) return alert("Faça login.");
-        const name = document.getElementById('prod-name').value;
-        if (!name) return alert("Nome obrigatório.");
-
-        const productData = {
-            name: name,
-            custo: document.getElementById('custo').value,
-            extra: document.getElementById('extra').value,
-            taxaFixa: document.getElementById('taxa-fixa').value,
-            comissao: document.getElementById('comissao').value,
-            imposto: document.getElementById('imposto').value,
-            devolucao: document.getElementById('devolucao').value,
-            descCupom: document.getElementById('desc-cupom').value,
-            descRelampago: document.getElementById('desc-relampago').value,
-            margem: document.getElementById('margem-slider').value,
-            precoVenda: document.getElementById('preco-venda').value,
-            adsMode: document.getElementById('ads-mode').value,
-            adsInput: document.getElementById('ads-input').value,
-            perfilAds: document.getElementById('perfil-ads').value,
-            customCpa: document.getElementById('custom-cpa').value, 
-            updatedAt: new Date().toISOString()
-        };
-
-        const btn = document.getElementById('btn-save');
-        const originalText = document.getElementById('btn-save-text').innerText;
-        document.getElementById('btn-save-text').innerText = "Salvando...";
-        btn.disabled = true;
-
-        try {
-            let docId = document.getElementById('prod-id').value;
-            const collectionRef = collection(db, 'users', window.currentUser.uid, 'products');
-            if (docId && window.productsCache[docId]) {
-                await updateDoc(doc(collectionRef, docId), productData);
-            } else {
-                const newRef = doc(collectionRef);
-                docId = newRef.id;
-                await setDoc(newRef, productData);
-                document.getElementById('prod-id').value = docId;
-                document.getElementById('badge-mode').innerText = `ID: ${docId.slice(0,4)}...`;
-                document.getElementById('badge-mode').className = "bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-bold text-[9px]";
-                document.getElementById('btn-delete').classList.remove('hidden');
-            }
-            document.getElementById('btn-save-text').innerText = "Salvo!";
-            setTimeout(() => { document.getElementById('btn-save-text').innerText = "Salvar"; btn.disabled = false; }, 2000);
-        } catch (e) { console.error(e); alert("Erro ao salvar."); document.getElementById('btn-save-text').innerText = originalText; btn.disabled = false; }
-    };
-
-    window.carregarProduto = (id) => {
-        if (!id || !window.productsCache[id]) return;
-        window.switchTab('calc');
-        const data = window.productsCache[id];
-        document.getElementById('prod-id').value = id;
-        document.getElementById('prod-name').value = data.name;
-        document.getElementById('badge-mode').innerText = `ID: ${id.slice(0,4)}...`;
-        document.getElementById('badge-mode').className = "bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-bold text-[9px]";
-        document.getElementById('btn-delete').classList.remove('hidden');
-        document.getElementById('btn-save-text').innerText = "Atualizar";
-        
-        let loadedAdsInput = data.adsInput;
-        if(loadedAdsInput === undefined || loadedAdsInput === null) loadedAdsInput = data.cpcEst || 0.11;
-
-        const fields = {
-            'custo': data.custo, 
-            'extra': data.extra, 
-            'taxa-fixa': data.taxaFixa || data['taxa-fixa'], 
-            'comissao': data.comissao, 
-            'imposto': data.imposto, 
-            'devolucao': data.devolucao,
-            'desc-cupom': data.descCupom || data['desc-cupom'], 
-            'desc-relampago': data.descRelampago || data['desc-relampago'],
-            'margem-slider': data.margem, 
-            'preco-venda': data.precoVenda || data['preco-venda'], 
-            'ads-mode': data.adsMode || 'cpc', 
-            'ads-input': loadedAdsInput,
-            'perfil-ads': data.perfilAds, 
-            'custom-cpa': data.customCpa || 10.00
-        };
-
-        for (const [key, val] of Object.entries(fields)) {
-            const el = document.getElementById(key);
-            if(el) el.value = val !== undefined ? val : (key === 'extra' || key === 'devolucao' ? 0 : el.value);
-        }
-        
-        if(data.margem) {
-             const label = document.getElementById('label-margem');
-             if(label) label.innerText = data.margem + "%";
-        }
-        
-        window.toggleAdsMode();
-        window.toggleAdsProfile();
-        window.atualizarPrecificacao('manual'); 
-        window.calcularGeral(false);
-    };
-
-    window.limparCalculadora = () => {
-        if(!confirm("Tem certeza que deseja limpar todos os campos da calculadora?")) return;
-        
-        const inputsToClear = ['custo', 'extra', 'taxa-fixa', 'comissao', 'imposto', 'desc-relampago', 'desc-cupom', 'devolucao', 'preco-venda', 'ads-input', 'custom-cpa', 'prod-name', 'prod-id'];
-        inputsToClear.forEach(id => {
-            const el = document.getElementById(id);
-            if(el) el.value = "";
-        });
-        
-        const slider = document.getElementById('margem-slider');
-        if(slider) {
-            slider.value = 15;
-            document.getElementById('label-margem').innerText = "15%";
-        }
-        
-        const perfil = document.getElementById('perfil-ads');
-        if(perfil) perfil.selectedIndex = 0;
-        
-        const adsMode = document.getElementById('ads-mode');
-        if(adsMode) adsMode.value = 'cpc';
-        
-        const saved = document.getElementById('saved-products');
-        if(saved) saved.value = "";
-        
-        // Reset state UI
-        const badge = document.getElementById('badge-mode');
-        if(badge) {
-            badge.innerText = "NOVO";
-            badge.className = "bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold text-[9px]";
-        }
-        
-        const btnSaveText = document.getElementById('btn-save-text');
-        if(btnSaveText) btnSaveText.innerText = "Salvar";
-        
-        const btnDelete = document.getElementById('btn-delete');
-        if(btnDelete) btnDelete.classList.add('hidden');
-        
-        window.toggleAdsMode();
-        window.toggleAdsProfile();
-        window.atualizarPrecificacao('slider');
-        window.calcularGeral(false);
-    }
-
-    window.exportarBackup = () => {
-        if (Object.keys(window.productsCache).length === 0) return alert("Nenhum produto.");
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(window.productsCache));
-        const link = document.createElement('a');
-        link.setAttribute("href", dataStr);
-        link.setAttribute("download", "backup_shopee_ads.json");
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-    };
-
-    window.importarBackup = async (input) => {
-        if (!window.currentUser) return;
-        const file = input.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            try {
-                const json = JSON.parse(e.target.result);
-                const batch = writeBatch(db);
-                let count = 0;
-                const collectionRef = collection(db, 'users', window.currentUser.uid, 'products');
-                for (const [id, data] of Object.entries(json)) { batch.set(doc(collectionRef, id), data); count++; }
-                await batch.commit();
-                alert(`${count} importados!`);
-            } catch (err) { alert("Erro import."); }
-        };
-        reader.readAsText(file);
-    };
-
-    window.switchTab = (tab) => {
-        const calcBtn = document.getElementById('tab-calc');
-        const adsBtn = document.getElementById('tab-ads');
-        const dashBtn = document.getElementById('tab-dash');
-        const viewCalc = document.getElementById('view-calc');
-        const viewAds = document.getElementById('view-ads-analysis');
-        const viewDash = document.getElementById('view-dash');
-        
-        [calcBtn, adsBtn, dashBtn].forEach(btn => btn.className = "flex-1 py-4 text-xs font-bold text-gray-400 border-b-2 border-transparent hover:bg-gray-50 uppercase tracking-wide transition-colors");
-        [viewCalc, viewAds, viewDash].forEach(view => view.classList.add('hidden'));
-
-        if(tab === 'calc') {
-            calcBtn.className = "flex-1 py-4 text-xs font-bold text-orange-600 border-b-2 border-orange-500 bg-orange-50 transition-colors";
-            viewCalc.classList.remove('hidden');
-        } else if (tab === 'ads') {
-            adsBtn.className = "flex-1 py-4 text-xs font-bold text-orange-600 border-b-2 border-orange-500 bg-orange-50 transition-colors";
-            viewAds.classList.remove('hidden');
         } else {
-            dashBtn.className = "flex-1 py-4 text-xs font-bold text-orange-600 border-b-2 border-orange-500 bg-orange-50 transition-colors";
-            viewDash.classList.remove('hidden');
-            updateDashboardTable();
-        }
-    }
-
-    window.updateDashboardTable = () => {
-        const tbody = document.getElementById('dash-tbody');
-        const searchInput = document.getElementById('dash-search');
-        const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
-        
-        let ids = Object.keys(window.productsCache);
-        
-        if (searchTerm) {
-            ids = ids.filter(id => {
-                const p = window.productsCache[id];
-                return p.name.toLowerCase().includes(searchTerm);
-            });
-        }
-
-        document.getElementById('dash-count').innerText = `${ids.length} produtos`;
-
-        if(ids.length === 0) { 
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">' + (searchTerm ? 'Nenhum produto encontrado.' : 'Vazio.') + '</td></tr>'; 
-            return; 
-        }
-
-        let html = '';
-        ids.forEach(id => {
-            const p = window.productsCache[id];
-            const pBase = parseFloat(p.precoVenda) || 0;
-            const custo = parseFloat(p.custo) || 0;
-            const extra = parseFloat(p.extra) || 0;
-            const fixo = parseFloat(p.taxaFixa) || 0;
+            if(profitBox) profitBox.classList.add('hidden');
+            if(compTable) compTable.classList.add('hidden');
             
-            const descC = (parseFloat(p.descCupom) || 0) / 100;
-            const descR = (parseFloat(p.descRelampago) || 0) / 100;
-            const pAposRelampago = pBase * (1 - descR);
-            const pFinal = pAposRelampago * (1 - descC);
-            
-            const comissao = (parseFloat(p.comissao)||0)/100;
-            const imposto = (parseFloat(p.imposto)||0)/100;
-            const devolucao = (parseFloat(p.devolucao)||0)/100;
-            
-            const taxasTotal = pFinal * (comissao + imposto + devolucao);
-            const lucro = pFinal - custo - extra - fixo - taxasTotal;
-            const margem = pFinal > 0 ? (lucro / pFinal) * 100 : 0;
-
-            const lucroClass = lucro >= 0 ? "text-green-600" : "text-red-600";
-            const margemClass = margem >= 15 ? "bg-green-100 text-green-800" : (margem > 0 ? "bg-yellow-100 text-yellow-800" : "bg-red-100 text-red-800");
-
-            html += `
-            <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                <td class="py-3 pl-2 font-bold text-gray-700">${p.name}</td>
-                <td class="py-3 text-gray-600">R$ ${pFinal.toFixed(2)}</td>
-                <td class="py-3 text-gray-400 text-xs">R$ ${custo.toFixed(2)}</td>
-                <td class="py-3 font-bold ${lucroClass}">R$ ${lucro.toFixed(2)}</td>
-                <td class="py-3 text-center"><span class="text-[10px] font-bold px-2 py-1 rounded-full ${margemClass}">${margem.toFixed(1)}%</span></td>
-                <td class="py-3 pr-2 text-right"><button onclick="carregarProduto('${id}')" class="text-blue-500 text-xs font-bold uppercase">Editar</button></td>
-            </tr>`;
-        });
-        tbody.innerHTML = html;
-    }
-
-    const els = {};
-    const ids = ['custo', 'extra', 'taxa-fixa', 'comissao', 'imposto', 'devolucao', 'desc-cupom', 'desc-relampago', 'preco-venda', 'ads-input', 'perfil-ads', 'custom-cpa', 'camp-impressions', 'camp-clicks', 'camp-expense', 'camp-gmv', 'camp-conversions', 'camp-items'];
-    ids.forEach(id => els[id] = document.getElementById(id));
-    
-    // Obter o slider no momento do uso para evitar erro de referência
-    function getMargemSlider() {
-        return document.getElementById('margem-slider');
-    }
-    
-    window.toggleAdsMode = function() {
-        const mode = document.getElementById('ads-mode').value;
-        const label = document.getElementById('lbl-ads-input');
-        const input = document.getElementById('ads-input');
-        const container = document.getElementById('ads-input-container');
-        if(mode === 'none') { container.classList.add('hidden'); } else { container.classList.remove('hidden'); if(mode === 'cpc') label.innerText = "CPC Estimado (R$)"; else label.innerText = "Conversão Estimada (%)"; }
-    }
-    
-    window.toggleAdsProfile = function() {
-        const perfil = document.getElementById('perfil-ads').value;
-        const customContainer = document.getElementById('custom-cpa-container');
-        if(perfil === 'custom') customContainer.classList.remove('hidden'); else customContainer.classList.add('hidden');
-    }
-
-    const triggerUpdate = (source) => { window.atualizarPrecificacao(source); window.calcularGeral(false); };
-    ['custo', 'extra', 'taxa-fixa', 'comissao', 'imposto', 'devolucao', 'desc-cupom', 'desc-relampago'].forEach(id => {
-         const el = document.getElementById(id);
-         if(el) el.addEventListener('input', () => {
-             // If these change, update main calc AND sim
-             triggerUpdate('slider');
-         });
-    });
-    
-    // desc-relampago input listener (Section 1) - ONLY syncs slider if slider hasn't been touched?
-    // User requested: "No campo 3... deverá aparecer o valor que coloquei... para servir de base".
-    // So if Section 1 changes, Section 3 slider should reflect it initially.
-    const descRelampagoInput = document.getElementById('desc-relampago');
-    if(descRelampagoInput) {
-        descRelampagoInput.addEventListener('input', (e) => {
-             // Syncs slider start point
-             triggerUpdate('slider'); // updates main calc
-        });
-    }
-
-    const sliderEl = document.getElementById('margem-slider');
-    if(sliderEl) sliderEl.addEventListener('input', () => triggerUpdate('slider'));
-
-    ['ads-input', 'custom-cpa'].forEach(id => {
-         const el = document.getElementById(id);
-         if(el) el.addEventListener('input', () => window.calcularGeral(false));
-    });
-    
-    const pvEl = document.getElementById('preco-venda');
-    if(pvEl) pvEl.addEventListener('input', () => triggerUpdate('manual'));
-
-
-    window.atualizarPrecificacao = function(origem) {
-        // 1. Update UI Label immediately
-        const slider = getMargemSlider();
-        
-        if (origem === 'slider' && slider) {
-             const label = document.getElementById('label-margem');
-             if(label) label.innerText = slider.value + "%";
-        }
-        
-        const custo = window.getVal('custo');
-        const extra = window.getVal('extra');
-        const fixo = window.getVal('taxa-fixa');
-        const taxasVariaveis = (window.getVal('comissao') + window.getVal('imposto') + window.getVal('devolucao')) / 100;
-        const custosFixosReais = custo + extra + fixo;
-
-        if (custo === 0) return;
-
-        if (origem === 'slider' && slider) {
-            const margemDesejada = parseFloat(slider.value) / 100;
-            const divisor = 1 - taxasVariaveis - margemDesejada;
-            const pvInput = document.getElementById('preco-venda');
-            
-            if (divisor <= 0.05) { 
-                if(pvInput) pvInput.value = 0; 
-                return; 
-            }
-            
-            const precoFinalAlvo = custosFixosReais / divisor;
-            const descCupom = window.getVal('desc-cupom') / 100;
-            const descRelampago = window.getVal('desc-relampago') / 100;
-            
-            const fatorDescontos = (1 - descCupom) * (1 - descRelampago);
-            let precoBaseSugerido = precoFinalAlvo / fatorDescontos;
-            precoBaseSugerido = Math.ceil(precoBaseSugerido - 0.90) + 0.90;
-            
-            if(pvInput) pvInput.value = precoBaseSugerido.toFixed(2);
-        }
-
-        const precoBase = window.getVal('preco-venda');
-        const precoFinal = window.calcularPrecoFinal(precoBase);
-        window.safeSetText('preco-final-display', "R$ " + precoFinal.toFixed(2));
-        
-        const custoTotalTaxas = precoFinal * taxasVariaveis;
-        const lucroLiquido = precoFinal - custosFixosReais - custoTotalTaxas;
-        
-        const elLucro = document.getElementById('lucro-real');
-        if (elLucro) {
-            elLucro.innerText = "R$ " + lucroLiquido.toFixed(2);
-            elLucro.className = lucroLiquido < 0 ? "text-xl font-black text-red-600" : "text-xl font-black text-green-600";
-        }
-    };
-
-    window.calcularGeral = function(scroll = true) {
-        const custo = window.getVal('custo');
-        const extra = window.getVal('extra');
-        const fixo = window.getVal('taxa-fixa');
-        const precoBase = window.getVal('preco-venda');
-        const taxasVariaveis = (window.getVal('comissao') + window.getVal('imposto') + window.getVal('devolucao')) / 100;
-        const adsMode = document.getElementById('ads-mode').value;
-        const adsInput = window.getVal('ads-input');
-        const perfilAds = document.getElementById('perfil-ads').value;
-
-        const precoFinal = window.calcularPrecoFinal(precoBase);
-        const custoTotalTaxas = precoFinal * taxasVariaveis;
-        const lucroUnit = precoFinal - (custo + extra + fixo) - custoTotalTaxas;
-        
-        let cpaAlvo = 0;
-        if (perfilAds === 'custom') cpaAlvo = window.getVal('custom-cpa');
-        else if (perfilAds == 0) cpaAlvo = 0; 
-        else cpaAlvo = Math.max(lucroUnit * 0.5, lucroUnit * parseFloat(perfilAds));
-        
-        let displayMainVal = "", displayMainLabel = "", displayMainSub = "";
-        
-        // --- ALWAYS SHOW SIMULATION ---
-        window.renderizarSimulacaoOrganica(precoBase, custo, extra, fixo);
-
-        // Ads Metrics Logic
-        if (perfilAds == 0) {
-            displayMainLabel = "Estratégia Orgânica"; displayMainVal = "Sem Ads"; displayMainSub = "Foco em SEO";
-            window.checkVereditoOrganic(lucroUnit);
-        } else {
-            if (adsMode === 'cpc' || adsMode === 'none') {
-                const cpc = adsMode === 'none' ? 0.11 : adsInput;
-                const convMin = cpaAlvo > 0 ? (cpc / cpaAlvo) * 100 : 0;
-                displayMainLabel = "Taxa de Conversão Mínima"; displayMainVal = convMin.toFixed(2) + "%"; displayMainSub = "Para CPC R$ " + cpc.toFixed(2);
-                window.checkVereditoConv(lucroUnit, convMin);
-            } else {
-                const conv = adsInput;
-                const cpcMax = cpaAlvo * (conv / 100);
-                displayMainLabel = "CPC Máximo Permitido"; displayMainVal = "R$ " + cpcMax.toFixed(2); displayMainSub = `Com conversão de ${conv}%`;
-                window.checkVereditoCPC(lucroUnit, cpcMax);
+            if(verdictEl) {
+                if(acos > 40) {
+                    verdictEl.innerText = "Atenção Crítica: O custo do anúncio está consumindo mais de 40% da receita. Verifique margem.";
+                    verdictEl.className = "text-xs text-red-600 leading-relaxed font-bold";
+                } else if (roas < 3) {
+                    verdictEl.innerText = "Alerta: ROAS baixo (< 3). Cuidado com prejuízo.";
+                    verdictEl.className = "text-xs text-orange-600 leading-relaxed font-bold";
+                } else {
+                     verdictEl.innerText = "Saudável: Métricas dentro de parâmetros aceitáveis.";
+                     verdictEl.className = "text-xs text-green-600 leading-relaxed font-bold";
+                }
             }
         }
-
-        const roasBreakeven = (lucroUnit > 0) ? (precoFinal / lucroUnit) : 0;
-        const roasIdeal = (cpaAlvo > 0) ? (precoFinal / cpaAlvo) : 0;
-        const acosBreakeven = roasBreakeven > 0 ? (100 / roasBreakeven) : 0;
-        const acosIdeal = roasIdeal > 0 ? (100 / roasIdeal) : 0;
-        const lucroPosAds = lucroUnit - cpaAlvo;
-
-        window.safeSetText('res-cpa', "R$ " + cpaAlvo.toFixed(2));
-        
-        const elSobra = document.getElementById('res-cpa-restante');
-        if (elSobra) {
-            elSobra.innerText = "Sobra: R$ " + lucroPosAds.toFixed(2);
-            elSobra.className = lucroPosAds >= 0 ? "block text-[10px] font-bold text-green-600 mt-1" : "block text-[10px] font-bold text-red-500 mt-1";
-        }
-
-        window.safeSetText('lbl-res-secondary', displayMainLabel);
-        window.safeSetText('res-secondary-val', displayMainVal);
-        window.safeSetText('res-secondary-sub', displayMainSub);
-
-        if(perfilAds == 0) {
-            window.safeSetText('res-roas-ideal', "ROAS: -"); window.safeSetText('res-acos-ideal', "ACOS: 0%");
-        } else {
-            window.safeSetText('res-roas-ideal', "ROAS: " + roasIdeal.toFixed(2)); window.safeSetText('res-acos-ideal', "ACOS: " + acosIdeal.toFixed(1) + "%");
-        }
-        window.safeSetText('res-roas-breakeven', "ROAS: " + roasBreakeven.toFixed(2));
-        window.safeSetText('res-acos-breakeven', "ACOS: " + acosBreakeven.toFixed(1) + "%");
-
-        window.renderizarProvaReal(precoBase, custo, extra, fixo);
-        const resArea = document.getElementById('results-area');
-        if(resArea) {
-            resArea.classList.remove('hidden');
-            if(scroll) resArea.scrollIntoView({ behavior: 'smooth' });
-        }
-    };
+    }
     
     // Função de impressão com nome de arquivo e escopo de aba
     window.imprimirRelatorio = function() {
         const nomeProdInput = document.getElementById('prod-name');
-        const nomeProd = nomeProdInput ? (nomeProdInput.value || "Relatorio_VeltAI") : "Relatorio_VeltAI";
+        let nomeProd = nomeProdInput ? (nomeProdInput.value || "Relatorio_VeltAI") : "Relatorio_VeltAI";
         
+        // Ensure format just in case
+        nomeProd = nomeProd.replace(/\s+/g, '_');
+        if(nomeProd.length > 0) nomeProd = nomeProd.charAt(0).toUpperCase() + nomeProd.slice(1);
+
         // Atualiza o elemento de impressão com o nome
         const printTitle = document.getElementById('prod-name-print');
         if(printTitle) printTitle.innerText = nomeProd;
 
-        let prefix = "Geral";
-        
-        // Determina qual aba está visível para nomear o arquivo
-        if(!document.getElementById('view-calc').classList.contains('hidden')) prefix = "Precificacao";
-        else if(!document.getElementById('view-ads-analysis').classList.contains('hidden')) prefix = "Analise_Ads";
-        else if(!document.getElementById('view-dash').classList.contains('hidden')) prefix = "Portfolio";
-
-        const safeName = `${prefix}_${nomeProd.replace(/[^a-z0-9\s-]/gi, '').trim().replace(/\s+/g, '_')}`;
-        
+        // Nome do arquivo = Nome do Produto (limpo)
         const originalTitle = document.title;
-        document.title = safeName;
+        document.title = nomeProd;
         window.print();
         
         // Timeout para garantir que o dialog de impressão pegou o título alterado
