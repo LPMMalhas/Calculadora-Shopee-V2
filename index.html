@@ -417,6 +417,26 @@
             <!-- RESULTADOS -->
             <div id="results-area" class="space-y-6 animate-fade-in border-t-2 border-dashed border-gray-200 pt-6">
                 
+                <!-- CARD DE OTIMIZAÇÃO (NOVO) -->
+                <div id="optimization-card" class="hidden bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-r-xl shadow-sm mb-2 animate-fade-in">
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-start gap-3">
+                            <div class="bg-indigo-100 p-2 rounded-full text-indigo-600 mt-1">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-indigo-900 uppercase">Oportunidade Detectada</h3>
+                                <p class="text-xs text-indigo-700 mt-1">Se ajustar o preço final para <span id="opt-price" class="font-black text-indigo-900">R$ 0,00</span> (faixa anterior):</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="block text-[10px] font-bold text-indigo-400 uppercase">Novo Lucro</span>
+                            <span id="opt-profit" class="text-xl font-black text-indigo-700">R$ 0,00</span>
+                            <span id="opt-diff" class="block text-[10px] font-bold text-green-600 mt-1">+R$ 0,00</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="ads-metrics-wrapper">
                     <div class="grid grid-cols-2 gap-4 mb-4">
                         <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 shadow-sm text-center flex flex-col justify-center">
@@ -830,6 +850,81 @@
             profitEl.className = profit >= 0 ? "font-bold text-green-600" : "font-bold text-red-600";
         }
         window.safeSetText('sim-custom-margin', margin.toFixed(1) + "%");
+    };
+
+    window.renderizarOtimizacao = function(currentPrice, custo, extra) {
+        // Regras para encontrar a faixa anterior
+        const rules = SHOPEE_RULES;
+        let limitPrice = 0;
+
+        // Encontra o limite superior da faixa imediatamente abaixo do preço atual
+        for (let i = 0; i < rules.length; i++) {
+            if (currentPrice > rules[i].max) {
+                limitPrice = rules[i].max; // Ex: 79.99
+            } else {
+                break; 
+            }
+        }
+
+        const card = document.getElementById('optimization-card');
+        
+        // Se não houver faixa anterior ou se o preço atual já for muito baixo
+        if (limitPrice === 0 || currentPrice === 0) {
+            if(card) card.classList.add('hidden');
+            return;
+        }
+
+        // Calcula cenário para o preço limite (Ex: 79.99)
+        const pSim = limitPrice;
+        const ruleSim = window.resolveShopeeFees(pSim);
+        const taxaVarSim = (ruleSim.comTotal + window.getVal('imposto') + window.getVal('devolucao')) / 100;
+        // Custo Total Simulado: Custo + Extra + FixaSimulada + (PreçoSim * TaxasVarSim)
+        const custoTotalSim = custo + extra + ruleSim.fixTotal + (pSim * taxaVarSim);
+        const lucroSim = pSim - custoTotalSim;
+        
+        // Calcula cenário atual real (Recalculando para garantir precisão com inputs atuais)
+        // Nota: Se "Auto" estiver OFF, os inputs da tela podem diferir das regras. 
+        // A comparação justa é: O que está na tela vs Otimização Padrão.
+        
+        const fixoAtual = window.getVal('taxa-fixa');
+        const comissaoAtual = window.getVal('comissao');
+        
+        const taxaVarCurr = (comissaoAtual + window.getVal('imposto') + window.getVal('devolucao')) / 100;
+        const custoTotalCurr = custo + extra + fixoAtual + (currentPrice * taxaVarCurr);
+        const lucroCurr = currentPrice - custoTotalCurr;
+
+        const diff = lucroSim - lucroCurr;
+        
+        const elPrice = document.getElementById('opt-price');
+        const elProfit = document.getElementById('opt-profit');
+        const elDiff = document.getElementById('opt-diff');
+
+        if(card && elPrice && elProfit && elDiff) {
+            card.classList.remove('hidden');
+            elPrice.innerText = "R$ " + pSim.toFixed(2);
+            elProfit.innerText = "R$ " + lucroSim.toFixed(2);
+            
+            if (diff > 0) {
+                // Lucro AUMENTA ao baixar o preço (o cenário ideal)
+                elDiff.innerText = "Vantagem: +R$ " + diff.toFixed(2);
+                elDiff.className = "block text-[10px] font-bold text-green-700 mt-1 bg-green-100 px-2 py-1 rounded w-fit";
+                card.className = "bg-green-50 border-l-4 border-green-500 p-4 rounded-r-xl shadow-sm mb-6 animate-fade-in";
+                // Ícone e Título
+                card.querySelector('i').className = "fas fa-arrow-down";
+                card.querySelector('h3').innerText = "Baixe o Preço e Lucre Mais!";
+                card.querySelector('h3').className = "text-sm font-bold text-green-900 uppercase";
+                
+            } else {
+                // Lucro diminui, mas mostra a opção
+                elDiff.innerText = "Diferença: R$ " + diff.toFixed(2);
+                elDiff.className = "block text-[10px] font-bold text-indigo-400 mt-1";
+                card.className = "bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-r-xl shadow-sm mb-6 animate-fade-in";
+                // Reset estilo padrão
+                card.querySelector('i').className = "fas fa-lightbulb";
+                card.querySelector('h3').innerText = "Análise de Faixa Anterior";
+                card.querySelector('h3').className = "text-sm font-bold text-indigo-900 uppercase";
+            }
+        }
     };
 
     window.renderizarProvaReal = function(precoBase, custo, extra, fixo) {
@@ -1543,6 +1638,9 @@
         
         // --- ALWAYS SHOW SIMULATION ---
         window.renderizarSimulacaoOrganica(precoBase, custo, extra, fixo);
+        
+        // --- NOVO: RENDERIZAR OTIMIZAÇÃO DE FAIXA ---
+        window.renderizarOtimizacao(precoFinal, custo, extra);
 
         // Ads Metrics Logic
         if (perfilAds == 0) {
